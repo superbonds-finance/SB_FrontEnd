@@ -15,6 +15,7 @@ import { SUPERBONDS_PROGRAM_ID,
          STAKING_DATA_ACCOUNT
        } from "../../utils/ids";
 import { findAssociatedTokenAddress } from "../../contexts/accounts";
+import { useUserBalance } from "../../hooks";
 import {POOL_DATA_LAYOUT,PoolDataLayout} from "../../utils/pool_data_layout";
 import {TRADE_DATA_LAYOUT} from "../../utils/trade_data_layout";
 import {PLATFORM_DATA_LAYOUT,PlatformDataLayout} from "../../utils/platform_data_layout";
@@ -44,41 +45,18 @@ export const RedeemView = () => {
   const connection = useConnection();
   const wallet = useWallet();
   const { trade_account } = useParams<ParamTypes>();
-  const history = useHistory();
+    const history = useHistory();
 
-  const [USDCbalance,setUSDCbalance] = useState<any>(0);
-  const [SuperBbalance,setSuperBbalance] = useState<any>(0);
-
-  const getAllBalances = async () => {
-    if ( !wallet){
-      notify({
-        message: 'Please connect to Sol network',
-        type: "error",
-      });
-      return;
-    }
-    if (!wallet.publicKey){
-      notify({
-        message: 'Please connect to Solana network',
-        type: "error",
-      });
-      return;
-    }
-    setUSDCbalance(await getTokenBalance(connection,wallet.publicKey,USDC_MINT_ADDRESS,USDC_DECIMALS));
-    setSuperBbalance(await getTokenBalance(connection,wallet.publicKey,SUPERB_MINT_ADDRESS,SUPERB_DECIMALS));
-
-  }
-
+  const USDC = useUserBalance(USDC_MINT_ADDRESS);
+  const SUPERB = useUserBalance(SUPERB_MINT_ADDRESS);
   const [Trade_dataSource,setTrade_dataSource] = useState<any>([]);
 
   const [isMyTrade,setIsMytrade] = useState(false);
   const [tradeData,setTradeData] = useState<any>(null);
-
   useEffect(() => {
     if (!wallet.publicKey) return;
     console.log('Here');
     onShowTradeInformation();
-    getAllBalances();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallet]);
   const onShowTradeInformation = async () => {
@@ -127,7 +105,7 @@ export const RedeemView = () => {
     const diffDays = Math.round(Math.abs((maturity_at - now.getTime()) / (1000)));
     console.log(maturity_at,now,diffDays);
     let current_bond_value = 0;
-    if (maturity_at<now.getTime()) current_bond_value = Bond_at_maturity;
+    if (diffDays<0) current_bond_value = Bond_at_maturity;
     else
       current_bond_value = Bond_at_maturity / ((1 + entrance_yield)**(diffDays/(365*24*60*60)));
     let tableData:any[] = [];
@@ -185,7 +163,7 @@ export const RedeemView = () => {
 
 
     let superB_fee = new BN(decodedPoolDataState.transaction_fee_SuperB, 10, "le").toNumber();
-    if (SuperBbalance*(10**SUPERB_DECIMALS)  < superB_fee)
+    if (SUPERB?.balance*(10**SUPERB_DECIMALS)  < superB_fee)
     {
       notify({
         message: 'You dont have enough SuperB to pay for transaction fee',
@@ -202,36 +180,35 @@ export const RedeemView = () => {
     // let message =
     // 'USDC fee: <strong>' + USDC_fee_rate + '%</strong><br/>' +
     // 'SuperB fee: <strong>' + superB_fee / (10**SUPERB_DECIMALS) + '</strong>';
+
     const message = `
     <div class="bg-gray-200 py-3 p-4 mt-3 sm:p-1 rounded-md">
-      <div class="table2">
-        <table class="w-full"> 
-            <tr>
-              <th class="text-left">
-                <span class="th_span small_font_td_span">
-                Redemption Fees: </span>
-              </th>
-              <td class="text-right">
-                <span class="td_span small_font_td_span">
-                <b>${USDC_fee_rate}</b>%</span>
-              </td>
-            </tr>
-
-            <tr>
-              <th class="text-left">
-                <span class="th_span small_font_td_span">
-                  Platform Fees: </span>
-              </th>
-              <td class="text-right">
-                <span class="td_span small_font_td_span">
-                <b> ${superB_fee / (10**SUPERB_DECIMALS)}</b> SB</span>
-              </td>
-            </tr>
+      <div class="w-full p-4 rounded-md" style="background: linear-gradient(0deg, rgba(124, 250, 76, 0.2), rgba(124, 250, 76, 0.2)), rgb(31, 41, 51);">
+        <table class="w-full">
+          <tr>
+            <th class="text-left">
+              <span class="th_span">
+                USDC fee:</span>
+            </th>
+            <td class="text-right">
+              <span class="td_span span_green">
+                ${USDC_fee_rate}%</span>
+            </td>
+          </tr>
+          <tr>
+            <th class="text-left">
+              <span class="th_span">
+                SB fee:</span>
+            </th>
+            <td class="text-right">
+              <span class="td_span">
+                ${superB_fee / (10**SUPERB_DECIMALS)}</span>
+            </td>
+          </tr>
         </table>
       </div>
     </div>
     `
-    
     await Swal.fire({
       title: 'Redeem Confirmation',
       html:message,
@@ -400,15 +377,15 @@ export const RedeemView = () => {
                         </div>
                         {isMyTrade &&
                             <div className="bg-gray-200 py-3 p-4 mt-3 sm:p-1 rounded-md">
-                                <div className="w-full p-4 rounded-md" style={{"background":'#263B31'}}>
+                                <div className="w-full p-4 rounded-md" style={{"background":'linear-gradient(0deg, rgba(124, 250, 76, 0.2), rgba(124, 250, 76, 0.2)), #1F2933'}}>
                                     <table className="w-full">
                                         <tr>
                                             <th className="float-left"><Text opacity={"0.75"} >USDC Balance:</Text></th>
-                                            <td  className="float-right"><Text size={"19px"} color={"#7CFA4C"}>{formatInputNumber(formatNumberWithoutRounding.format(USDCbalance))}</Text></td>
+                                            <td  className="float-right"><Text size={"19px"} color={"#9CF61C"}>{formatInputNumber(formatNumberWithoutRounding.format(USDC.balance))}</Text></td>
                                         </tr>
                                         <tr>
                                             <th className="float-left">  <Text opacity={"0.75"}>SB Balance:</Text></th>
-                                            <td className="float-right" ><Text size={"19px"}color={'white'}>{formatInputNumber(String(SuperBbalance))}</Text></td>
+                                            <td className="float-right" ><Text size={"19px"}color={'white'}>{formatInputNumber(String(SUPERB.balance))}</Text></td>
                                         </tr>
                                     </table>
                                 </div>

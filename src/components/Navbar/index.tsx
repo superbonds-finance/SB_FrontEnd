@@ -67,7 +67,7 @@ export default function Navbar(props: {
     <div className="nav">
       <input type="checkbox" id="nav-check" />
       <div className="nav-header cursor-pointer">
-        <div className="nav-title"  onClick={() => handlePush("/")}>
+        <div className="nav-title" onClick={() =>  window.location.assign('https://superbonds.finance/#/')}>
           <img
             className="inline-block w-12"
             src={
@@ -84,7 +84,7 @@ export default function Navbar(props: {
           {Links}
         </div>
       </div>}
-
+       
       <div className="nav-btn">
         <label htmlFor="nav-check">
           <span></span>
@@ -124,7 +124,7 @@ export default function Navbar(props: {
               }
               onClick={() => handlePush("/stake")}
             >
-              <span className="text-sm tracking-wide">SB-Staking</span>
+              <span className="text-sm tracking-wide">Stake</span>
             </button>
             {/* <button className={path=="/tge"?"bg-gray-300  text-white rounded-md":''} onClick={()=>handlePush('/tge')}><span className="text-sm tracking-wide">TGE</span></button>
           <button className={path=="/claimNFT"?"bg-gray-300  text-white rounded-md":''} onClick={()=>handlePush('/claimNFT')}><span className="text-sm tracking-wide">Claim NFT</span></button> */}
@@ -164,7 +164,7 @@ export default function Navbar(props: {
               content={<Settings />}
               trigger="click"
             >
-              <i className="fas fa-cog fa-lg text-gray-600 cursor-pointer ml-2 mt-1" />
+              <i className="fas fa-cog fa-lg text-gray-900 cursor-pointer ml-2 mt-1" />
             </Popover>
           </>
         )}
@@ -191,9 +191,9 @@ export default function Navbar(props: {
               <span style={{ color: "#7CFA4C" }}>B</span> Ambassador
             </NewText>
             </div>
-
+           
             <div className="flex justify-center">
-
+              
               <button
                 onClick={() =>
                   window.open(
@@ -308,7 +308,7 @@ export default function Navbar(props: {
 
 
         </div>
-
+        
       </div>
     </div>
   );

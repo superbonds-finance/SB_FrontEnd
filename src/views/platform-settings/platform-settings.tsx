@@ -1024,7 +1024,7 @@ export const StakingManagementView = () => {
               type="text" />
             </Form.Item>
             <Form.Item
-              label="Index (0-10) Admin only"
+              label="Index (0-5) Admin only"
               name="admin_index"
             >
               <Input
@@ -1067,24 +1067,6 @@ export const StakingManagementView = () => {
             } <br/>
             {!PlatformData.admin_accounts ? null :
               new PublicKey(PlatformData.admin_accounts[4]).toBase58()
-            } <br/>
-            {!PlatformData.admin_accounts ? null :
-              new PublicKey(PlatformData.admin_accounts[5]).toBase58()
-            } <br/>
-            {!PlatformData.admin_accounts ? null :
-              new PublicKey(PlatformData.admin_accounts[6]).toBase58()
-            } <br/>
-            {!PlatformData.admin_accounts ? null :
-              new PublicKey(PlatformData.admin_accounts[7]).toBase58()
-            } <br/>
-            {!PlatformData.admin_accounts ? null :
-              new PublicKey(PlatformData.admin_accounts[8]).toBase58()
-            } <br/>
-            {!PlatformData.admin_accounts ? null :
-              new PublicKey(PlatformData.admin_accounts[9]).toBase58()
-            } <br/>
-            {!PlatformData.admin_accounts ? null :
-              new PublicKey(PlatformData.admin_accounts[10]).toBase58()
             } <br/>
             </strong></span></p>
             <p>governance_account: <br/><span><strong>{!PlatformData.governance_account ? null :new PublicKey(PlatformData.governance_account).toBase58()}</strong></span></p>

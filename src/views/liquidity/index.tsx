@@ -27,7 +27,7 @@ import {
   numberFormatter, delay,
   formatInputNumber, unformatInputNumber,formatNumberWithoutRounding,
   numOnly, noSpecial } from "../../utils/utils";
-import { ButtonText, Text ,HeroText} from "./liquidity.styled"
+import { ButtonText, Text } from "./liquidity.styled"
 import {
   Account,
   // Connection,
@@ -38,7 +38,7 @@ import {
   TransactionInstruction,
   // Transaction,
 } from '@solana/web3.js';
-import Swal from 'sweetalert2';
+
 import { AccountLayout, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import '../../styles/trade.css'
 import { StakeViewComponent } from "../stake/stake-component";
@@ -53,7 +53,6 @@ export function LiquidityView() {
   // const [SOLbalance, setSOLbalance] = useState(0);
   const [USDCbalance, setUSDCbalance] = useState<any>(0);
   const [SuperBbalance, setSuperBbalance] = useState<any>(0);
-  const [transactionFees,setTransactionFees] = useState<any>();
   const [LP30balance, setLP30balance] = useState<any>(0);
   const [LP90balance, setLP90balance] = useState<any>(0);
   const [refreshStakeBalance, setRefreshStakeBalance] = useState<any>(0);
@@ -88,26 +87,49 @@ export function LiquidityView() {
   const [data90pool, setData90pool] = useState<any>();
 
   useEffect(() => {
-
+    if (!wallet.publicKey) return;
     readPoolData_30();
     readPoolData_90();
     getAllBalances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallet]);
 
-
-
   const readPoolData_30 = async () => {
+    if (!wallet) {
+      notify({
+        message: 'Please connect to Sol network',
+        type: "error",
+      });
+      return;
+    }
+    if (!wallet.publicKey) {
+      notify({
+        message: 'Please connect to Solana network',
+        type: "error",
+      });
+      return;
+    }
 
     const encodedPoolDataState = (await connection.getAccountInfo(POOL_30_ADDRESS, 'singleGossip'))!.data;
     const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
     setData30pool(decodedPoolDataState);
-    console.log(decodedPoolDataState)
-    let transactionFeeSuperB = new BN(decodedPoolDataState.transaction_fee_SuperB, 10, "le").toNumber() / (10**USDC_DECIMALS);
-    setTransactionFees(transactionFeeSuperB)
 
   }
   const readPoolData_90 = async () => {
+    if (!wallet) {
+      notify({
+        message: 'Please connect to Sol network',
+        type: "error",
+      });
+      return;
+    }
+    if (!wallet.publicKey) {
+      notify({
+        message: 'Please connect to Solana network',
+        type: "error",
+      });
+      return;
+    }
 
     const encodedPoolDataState = (await connection.getAccountInfo(POOL_90_ADDRESS, 'singleGossip'))!.data;
     const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
@@ -125,51 +147,6 @@ export function LiquidityView() {
     setLQ_Amount90(formatInputNumber(value));
   }, []);
   const onRemoveLiquidity = async (pool: any) => {
-    let RemoveLiquidityFees=pool===30?data30pool.remove_liquidity_fee_USDC/100:data90pool.remove_liquidity_fee_USDC/100;
-
-    const message = `
-     <div class="bg-gray-200 py-3 p-4 mt-3 sm:p-1 rounded-md">
-       <div class="table2">
-         <table class="w-full">
-             <tr>
-               <th class="text-left">
-                 <span class="th_span small_font_td_span">
-                 Remove Liquidity Fees</span>
-               </th>
-               <td class="text-right">
-                 <span class="td_span small_font_td_span">
-                 <b>${RemoveLiquidityFees}</b>%</span>
-               </td>
-             </tr>
-
-             <tr>
-               <th class="text-left">
-                 <span class="th_span small_font_td_span">
-                   Platform Fees: </span>
-               </th>
-               <td class="text-right">
-                 <span class="td_span small_font_td_span">
-                 <b>${transactionFees}</b> SB</span>
-               </td>
-             </tr>
-         </table>
-       </div>
-     </div>
-     `
-    let ProceedForRemoveLiquidity=false
-    await Swal.fire({
-      title: 'Remove Liquidity Fees Confirmation',
-      html:message,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      confirmButtonColor:'#7cfa4d'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        ProceedForRemoveLiquidity = true
-      }
-    })
-    if (!ProceedForRemoveLiquidity) return;
-
     console.log('remove Liquidity', pool, unformatInputNumber(lq_amount30), unformatInputNumber(lq_amount90));
     if (!wallet) {
       notify({
@@ -245,17 +222,9 @@ export function LiquidityView() {
     const initLP_TOKENAccountIx = Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, lp_token_mint_address, lp_token_account.publicKey, publicKey);
     const transferLPTokensToTempAccIx = Token
       .createTransferInstruction(TOKEN_PROGRAM_ID, associated_token_account_address, lp_token_account.publicKey, publicKey, [], parseFloat(lp_token_amount) * (10 ** LP_TOKEN_DECIMALS));
-    //Calculte minimum to receive
-    let withdraw_fees = (lp_token_amount * lp_token_price) * RemoveLiquidityFees/100;
-    let min_receive_amount = ((lp_token_amount * lp_token_price) - withdraw_fees) * 0.95; //slippage is 5%
 
-    console.log("min_receive_amount",min_receive_amount.toFixed(6));
     const buffers = [
-      Buffer.from(Uint8Array.of(11, 0,
-         ...new Numberu64(parseFloat(lp_token_amount) * (10 ** LP_TOKEN_DECIMALS)).toBuffer(),
-         ...new Numberu64(parseFloat(min_receive_amount.toFixed(6)) * (10 ** USDC_DECIMALS)).toBuffer()
-
-       ))
+      Buffer.from(Uint8Array.of(11, 0, ...new Numberu64(parseFloat(lp_token_amount) * (10 ** LP_TOKEN_DECIMALS)).toBuffer()))
     ];
     // let [LP_TOKEN_PDA, LP_TOKEN_NONCE] = await PublicKey.findProgramAddress([lp_token_mint_address.toBuffer()], SUPERBONDS_PROGRAM_ID);
     let [LP_POOL_TOKEN_PDA/* , LP_POOL_TOKEN_NONCE */] = await PublicKey.findProgramAddress([new PublicKey(decodedPoolDataState.LP_Pool).toBuffer()], SUPERBONDS_PROGRAM_ID);
@@ -357,52 +326,7 @@ export function LiquidityView() {
 
   }
   const onAddLiquidity = async (pool: any) => {
-
-    let AddLiquidityFees=pool===30?data30pool.add_liquidity_fee_USDC/100:data90pool.add_liquidity_fee_USDC/100;
-
-    const message = `
-     <div class="bg-gray-200 py-3 p-4 mt-3 sm:p-1 rounded-md">
-       <div class="table2">
-         <table class="w-full">
-             <tr>
-               <th class="text-left">
-                 <span class="th_span small_font_td_span">
-                 Add Liquidity Fees</span>
-               </th>
-               <td class="text-right">
-                 <span class="td_span small_font_td_span">
-                 <b>${AddLiquidityFees}</b>%</span>
-               </td>
-             </tr>
-
-             <tr>
-               <th class="text-left">
-                 <span class="th_span small_font_td_span">
-                   Platform Fees: </span>
-               </th>
-               <td class="text-right">
-                 <span class="td_span small_font_td_span">
-                 <b>${transactionFees}</b> SB</span>
-               </td>
-             </tr>
-         </table>
-       </div>
-     </div>
-     `
-    let ProceedForAddLiquidity=false
-    await Swal.fire({
-      title: 'Add Liquidity Fees Confirmation',
-      html:message,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      confirmButtonColor:'#7cfa4d'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        ProceedForAddLiquidity = true
-      }
-    })
-    if (!ProceedForAddLiquidity) return;
-
+    console.log('add Liquidity', pool, unformatInputNumber(lq_amount30), unformatInputNumber(lq_amount90));
     if (!wallet) {
       notify({
         message: 'Please connect to Solana network',
@@ -439,7 +363,7 @@ export function LiquidityView() {
     let SuperB_fee = new BN(decodedPoolDataState.transaction_fee_SuperB, 10, "le").toNumber();
 
     let total_USDC = pool == 30 ? parseFloat(unformatInputNumber(lq_amount30)) * (1 + USDC_fee) : parseFloat(unformatInputNumber(lq_amount90)) * (1 + USDC_fee);
-    //console.log(total_USDC, SuperB_fee, SuperBbalance);
+    console.log(total_USDC, SuperB_fee, SuperBbalance);
     //Check if user has enough balance
     if (USDCbalance < total_USDC) {
       notify({
@@ -466,15 +390,14 @@ export function LiquidityView() {
     }
 
     const buffers = [
-      Buffer.from(Uint8Array.of(11, 1, ...new Numberu64(total_USDC * (10 ** USDC_DECIMALS)).toBuffer(), ...new Numberu64(0).toBuffer()))
+      Buffer.from(Uint8Array.of(11, 1, ...new Numberu64(total_USDC * (10 ** USDC_DECIMALS)).toBuffer()))
     ];
 
     let associated_token_account_address = await findAssociatedTokenAddress(publicKey, USDC_MINT_ADDRESS);
-    //console.log('associated_token_account_address', associated_token_account_address.toBase58());
+    console.log('associated_token_account_address', associated_token_account_address.toBase58());
     let associated_SUPERB_token_account_address = await findAssociatedTokenAddress(publicKey, SUPERB_MINT_ADDRESS);
-    //console.log('associated_SUPERB_token_account_address', associated_SUPERB_token_account_address.toBase58());
-    //console.log('SUPERB_MINT_ADDRESS', SUPERB_MINT_ADDRESS.toBase58());
-    //console.log('publicKey', publicKey.toBase58());
+    console.log('associated_SUPERB_token_account_address', associated_SUPERB_token_account_address.toBase58());
+
     //Create new SUPERB token Account and transfer FEE amount to it
 
     let lp_associated_token_account_address = await findAssociatedTokenAddress(publicKey, lp_token_mint_address);
@@ -587,38 +510,36 @@ export function LiquidityView() {
           text='Add/Remove liquidity'
           USDCbalance={USDCbalance}
           SuperBbalance={SuperBbalance}
-          divStyle=''
+          divStyle=' mx-auto w-10/12 2xl:w-12/12 xl:w-full lg:w-full md:w-10/12 sm:w-full'
         />
-        <div className="mt-8 sm:pt-0 bg-gray-300 neon-bottom-card selected-box-neon rounded-md">
-          <div className="w-full bg-green-100 py-2 rounded-t-md text-center">
-            <HeroText size={"16px"} transform={"true"} weight={'true'} color='black' style={{ fontFamily:"Archivo"}}>30-day pool</HeroText>
-          </div>
-          <div className="flex  justify-between  md:justify-center  md:flex-wrap  pt-6">
-          <div className="flex flex-col w-6/12 2xl:w-6/12 xl:w-11/12 lg:w-11/12 sm:w-12/12 md:w-10/12  py-4 px-7 sm:px-0">
+        <div className="flex pt-6 justify-center md:flex-wrap">
+          <div className="flex flex-col 2xl:w-6/12 xl:w-11/12 lg:w-11/12 sm:w-full md:w-10/12 bg-gray-300 py-7 px-7 sm:px-1 rounded-md neon-bottom-card selected-box-neon">
             <div className="text-center">
-              <Text size={"16px"} transform={"true"}>Add/Remove Liquidity</Text>
+              <Text size={"16px"} transform={"true"}>Add/Remove Liquidity to 30-day pool</Text>
             </div>
-            <div className="bg-gray-200 py-3 pl-3 py-7 px-2 mt-5 rounded-md">
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"} >USDC Balance:</Text>
-                <Text className='cursor-pointer' onClick={()=>setLQ_Amount30(formatNumberWithoutRounding.format((USDCbalance)))}>{formatNumberWithoutRounding.format((USDCbalance))}</Text>
-              </div>
-
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"} >LP Pool Token Balance:</Text>
-                <Text className='cursor-pointer' onClick={()=>setLQ_Amount30(formatInputNumber(String(LP30balance)))}>{numberFormatter.format(LP30balance)}</Text>
-              </div>
-
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"}>Add Liquidity Price:</Text>
-                <Text>{1.000000} </Text>
-              </div>
-
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"}>Remove Liquidity Price:</Text>
-                <Text>{data30pool ? (data30pool.lp_price / 1000000).toFixed(6) : "..."} </Text>
-              </div>
-
+            <div className="bg-gray-200 py-3 pl-3 pr-3  mt-5 rounded-md">
+              <table className="w-full">
+                <tr>
+                  <th className="float-left"><Text opacity={"50%"} >USDC Balance:</Text></th>
+                  <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount30(formatNumberWithoutRounding.format((USDCbalance)))}>{formatNumberWithoutRounding.format((USDCbalance))}</Text></td>
+                </tr>
+                {/* <tr>
+                  <th className="float-left"><Text opacity={"50%"} >SuperB Balance:</Text></th>
+                  <td className="text-right px-2"><Text>{numberFormatter.format(SuperBbalance)}</Text></td>
+                </tr> */}
+                <tr>
+                  <th className="float-left">  <Text opacity={"0.5"}>LP Pool Token Balance:</Text></th>
+                  <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount30(formatInputNumber(String(LP30balance)))}>{numberFormatter.format(LP30balance)}</Text></td>
+                </tr>
+                <tr>
+                  <th className="float-left"><Text opacity={"0.5"}>Add Liquidity Price:</Text></th>
+                  <td className="text-right px-2"><Text>{1.000000} </Text></td>
+                </tr>
+                <tr>
+                  <th className="float-left"><Text opacity={"0.5"}>Remove Liquidity Price:</Text></th>
+                  <td className="text-right px-2"><Text>{data30pool ? (data30pool.lp_price / 1000000).toFixed(6) : "..."} </Text></td>
+                </tr>
+              </table>
             </div>
             <div className="text-center bg-gray-200 py-3 px-3 border rounded-md mt-3">
               <Text className="block" opacity={"0.5"}>ADD = USDC / REMOVE = LP TOKEN</Text>
@@ -648,39 +569,37 @@ export function LiquidityView() {
 
           {/* stake connect */}
           <StakeViewComponent poolType='30' getAllLiquidityBalances={getAllBalances} refreshStakeBalance={refreshStakeBalance} />
-          </div>
+
         </div>
 
-        <div className="sm:pt-0 bg-gray-300 neon-bottom-card selected-box-neon rounded-md" style={{marginTop:'5rem'}}>
-          <div className="w-full bg-green-100 py-2 rounded-t-md text-center">
-            <HeroText  size={"16px"} transform={"true"} weight={'true'} color='black' style={{ fontFamily:"Archivo"}}>90-day pool</HeroText>
-          </div>
-          <div className="flex  justify-between  md:justify-center  md:flex-wrap  pt-6">
-          <div className="flex w-6/12 flex-col 2xl:w-6/12 xl:w-11/12 lg:w-11/12 sm:w-12/12 md:w-10/12   py-4 px-7 sm:px-0">
+        <div className="flex pt-6 justify-center md:flex-wrap" style={{marginTop:'5rem'}}>
+          <div className="flex flex-col 2xl:w-6/12 xl:w-11/12 lg:w-11/12 sm:w-full md:w-10/12 bg-gray-300 py-7 px-7 sm:px-1 rounded-md neon-bottom-card selected-box-neon">
             <div className="text-center">
-              <Text size={"16px"} transform={"true"}>Add/Remove Liquidity </Text>
+              <Text size={"16px"} transform={"true"}>Add/Remove Liquidity to 90-day pool</Text>
             </div>
-            <div className="bg-gray-200 py-3 pl-3 py-7 px-2 mt-5 rounded-md">
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"}>USDC Balance:</Text>
-                <Text className='cursor-pointer' onClick={()=>setLQ_Amount90(formatNumberWithoutRounding.format((USDCbalance)))}>{formatNumberWithoutRounding.format((USDCbalance))}</Text>
-              </div>
-
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"}>LP Pool Token Balance:</Text>
-                <Text className='cursor-pointer' onClick={()=>setLQ_Amount90(formatInputNumber(String(LP90balance)))}>{numberFormatter.format(LP90balance)}</Text>
-              </div>
-
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"}>Add Liquidity Price:</Text>
-                <Text>{1.000000} </Text>
-              </div>
-
-              <div className='grid grid-cols-3'>
-                <Text weight='true' className="col-span-2" opacity={"0.75"}>Remove Liquidity Price:</Text>
-                <Text>{data90pool ? (data90pool.lp_price / 1000000).toFixed(6) : "..."} </Text>
-              </div>
-
+            <div className="bg-gray-200 py-3 pl-3 pr-3  mt-5 rounded-md">
+              <table className="w-full">
+                <tr>
+                  <th className="float-left"><Text opacity={"50%"} >USDC Balance:</Text></th>
+                  <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount90(formatInputNumber(String(USDCbalance)))}>{numberFormatter.format(USDCbalance)} </Text></td>
+                </tr>
+                {/* <tr>
+                  <th className="float-left"><Text opacity={"50%"} >SuperB Balance:</Text></th>
+                  <td className="text-right px-2"><Text>{numberFormatter.format(SuperBbalance)}</Text></td>
+                </tr> */}
+                <tr>
+                  <th className="float-left">  <Text opacity={"0.5"}> LP Pool Token Balance:</Text></th>
+                  <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount90(formatInputNumber(String(LP90balance)))}>{numberFormatter.format(LP90balance)}</Text></td>
+                </tr>
+                <tr>
+                  <th className="float-left"><Text opacity={"0.5"}>Add Liquidity Price:</Text></th>
+                  <td className="text-right px-2"><Text>{1.000000} </Text></td>
+                </tr>
+                <tr>
+                  <th className="float-left"><Text opacity={"0.5"}>Remove Liquidity Price:</Text></th>
+                  <td className="text-right px-2"><Text>{data90pool ? (data90pool.lp_price / 1000000).toFixed(6) : "..."} </Text></td>
+                </tr>
+              </table>
             </div>
             <div className="text-center bg-gray-200 py-3 px-3 border rounded-md mt-3">
               <Text className="block" opacity={"0.5"}>ADD = USDC / REMOVE = LP TOKEN</Text>
@@ -710,7 +629,7 @@ export function LiquidityView() {
 
           {/* stake connect */}
           <StakeViewComponent poolType='90' getAllLiquidityBalances={getAllBalances} refreshStakeBalance={refreshStakeBalance} />
-          </div>
+
         </div>
       </div>
     </div>

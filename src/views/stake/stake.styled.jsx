@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import font from "../../assets/Archivo-Bold.ttf"
 
 export const HeaderText=styled.span`
 font-family: Archivo;
@@ -33,24 +32,4 @@ text-transform: ${(props) => (props.transform ? "uppercase" : 'non')};
 opacity: ${(props) => (props.opacity ? props.opacity : '')};
 hover:color
 
-`
-
-export const HeroText=styled.span`
-@font-face {
-  font-family: 'Archivo';
-  src: url(${font}) format('truetype');
-  font-weight: 600;
-}
-font-family: 'Archivo';
-  font-style: normal;
-  font-weight: ${(props) => (props.weight ?  'bold' : '')};
-  font-size: ${(props) => (props.size ? props.size : '14px')};
-  line-height: 22px;
-  text-transform: ${(props) => (props.transform ? "uppercase" : 'none')};
-  letter-spacing:${(props) => (props.spacing ?props.spacing : '0.5px')};;
-  color: ${(props) => (props.color ? props.color : '#FFFFFF')};
-  opacity: ${(props) => (props.opacity ? props.opacity : '')};
-  background: transparent;
-  user-select: none;
-  
 `

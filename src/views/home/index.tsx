@@ -1,228 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { useHistory} from "react-router-dom";
-import { Text, TextDoc, BtnText, NewText } from "./home.styled";
+import React, { useEffect } from "react";
+// import { useHistory} from "react-router-dom";
+import { useConnectionConfig } from "../../contexts/connection";
+import { useMarkets } from "../../contexts/market";
+import { Text, TextDoc, BtnText, NewText, BoldFont } from "./home.styled";
 // import { Tooltip } from 'antd';
 import bgimage from "../../assets/bg.png";
 import "./home.css";
 
-import { useWallet } from "@solana/wallet-adapter-react";
-
-import { useConnection } from "../../contexts/connection"
-import {
-    POOL_30_ADDRESS,
-    POOL_90_ADDRESS,
-    PLATFORM_DATA_ACCOUNT,
-  } from "../../utils/ids";
-import {POOL_DATA_LAYOUT,PoolDataLayout} from "../../utils/pool_data_layout";
-import {PLATFORM_DATA_LAYOUT,PlatformDataLayout} from "../../utils/platform_data_layout";
-import BN from "bn.js";
-import {
-  formatNumberWithoutRounding,
- } from "../../utils/utils";
-import '../../styles/trade.css';
-import axios from 'axios';
-import {AxiosResponse} from 'axios';
-
-
 export const HomeView = () => {
-  const history = useHistory();
+  const { marketEmitter, midPriceInUSD } = useMarkets();
+  const { tokenMap } = useConnectionConfig();
+  // const SRM_ADDRESS = "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt";
+  // const history = useHistory();
 
-  const handlePush = (route: string) => {
-    history.push(route);
-  };
+  useEffect(() => {
+    const refreshTotal = () => {};
 
-  const wallet = useWallet();
+    const dispose = marketEmitter.onMarket(() => {
+      refreshTotal();
+    });
 
-  const connection = useConnection();
-    // const wallet = useWallet();
-    //const [loaded,setLoaded] = useState(false);
+    refreshTotal();
 
-    const [data30pool,setData30pool] = useState<any>();
-    const [data90pool,setData90pool] = useState<any>();
-
-    const [showAllTrade,setAllTrade]=useState<number>(2);
-
-
-    const [bond_yield30,setBond_Yield30] = useState(0);
-    const [adjustedLiquidity30,setAdjustedLiquidity30] = useState(0);
-    const [tradeLiquidityAvailability30,setTradeLiquidityAvailability30] = useState(0);
-
-
-    const [bond_yield90,setBond_Yield90] = useState(0);
-    const [adjustedLiquidity90,setAdjustedLiquidity90] = useState(0);
-    const [tradeLiquidityAvailability90,setTradeLiquidityAvailability90] = useState(0);
-
-
-
-    const onShowAllTrades = async (_type:number) =>{
-      setAllTrade(_type);
+    return () => {
+      dispose();
     };
+  }, [marketEmitter, midPriceInUSD, tokenMap]);
 
-    useEffect(() => {
-      readPoolData_30();
-      readPoolData_90();
-      getStakingPoolData();
-      onShowAllTrades(2);
-      // getAllBalances();
-    }, [wallet]);
-
-    useEffect(() => {
-      //if (!wallet.publicKey) return;
-      if (data30pool) {
-        setAdjustedLiquidity30(new BN(data30pool.adjustedLiquidity, 10, "le").toNumber()/1000000);
-        setTradeLiquidityAvailability30(data30pool.trade_liquidity_availability/10000);
-        //console.log(data30pool.trade_liquidity_availability,new BN(data30pool.adjustedLiquidity, 10, "le").toNumber()/1000000);
-      }
-      if (data90pool) {
-
-        setAdjustedLiquidity90(new BN(data90pool.adjustedLiquidity, 10, "le").toNumber()/1000000);
-        setTradeLiquidityAvailability90(data90pool.trade_liquidity_availability/10000);
-        //console.log(data90pool.trade_liquidity_availability);
-      }
-    }, [data30pool,data90pool]);
-
-    const readPoolData_30 = async () => {
-      // if ( !wallet){
-      //   notify({
-      //     message: 'Please connect to Sol network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      // if (!wallet.publicKey){
-      //   notify({
-      //     message: 'Please connect to Solana network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-
-      const encodedPoolDataState = (await connection.getAccountInfo(POOL_30_ADDRESS, 'singleGossip'))!.data;
-      const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-       //console.log("asas",decodedPoolDataState)
-      setData30pool(decodedPoolDataState);
-
-    }
-    const readPoolData_90 = async () => {
-      // if ( !wallet){
-      //   notify({
-      //     message: 'Please connect to Sol network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      // if (!wallet.publicKey){
-      //   notify({
-      //     message: 'Please connect to Solana network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-
-      const encodedPoolDataState = (await connection.getAccountInfo(POOL_90_ADDRESS, 'singleGossip'))!.data;
-      const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-      setData90pool(decodedPoolDataState);
-
-    }
-    const getStakingPoolData = async () => {
-      // if ( !wallet){
-      //   notify({
-      //     message: 'Please connect to Sol network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      // let publicKey = wallet.publicKey;
-      // if (!publicKey){
-      //   notify({
-      //     message: 'Please connect to Solana network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      const encodedPoolDataState = (await connection.getAccountInfo(PLATFORM_DATA_ACCOUNT, 'singleGossip'))!.data;
-      const decodedPoolDataState = PLATFORM_DATA_LAYOUT.decode(encodedPoolDataState) as PlatformDataLayout;
-      //console.log(decodedPoolDataState);
-      let bond_yield = decodedPoolDataState.pool_yield_vector[0]/100;
-      setBond_Yield30(bond_yield);
-      bond_yield =  decodedPoolDataState.pool_yield_vector[1]/100;
-      setBond_Yield90(bond_yield);
-
-    }
-
-
-
-    const fetchPublicAPI=async (limit:Number,offset:Number)=>{
-      //Get All Trades
-      try {
-        const data = {limit,offset};
-        const response:AxiosResponse<any> = await axios.post('https://api.superbonds.finance/getAllTrades',data);
-        if(response.data.trades.length===0 && offset>0) {
-          fetchPublicAPI(10,0)
-          return;
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      //Get All Pending Redemptions
-      // try {
-      //   const data = {limit,offset};;
-      //   const response:AxiosResponse<any> = await axios.post('https://api.superbonds.finance/getAllPendings',data);
-
-      // } catch (error) {
-      //   console.error(error);
-      // }
-    }
-
-    const fetchPrivateAPI=async (limit:Number,offset:Number)=>{
-      let publicKey = wallet.publicKey;
-      if(publicKey){
-        if(showAllTrade===2){
-          try {
-            const data = {limit,offset,trade_owner:publicKey.toString()};
-            const response:AxiosResponse<any> = await axios.post('https://api.superbonds.finance/getTrades',data);
-            if(response.data.trades.length===0 && offset>0) {
-              fetchPrivateAPI(10,0)
-              return;
-            }
-
-          } catch (error) {
-            console.error(error);
-          }
-        }
-
-        //Get My Pendings
-        if(showAllTrade===3){
-          try {
-            const data = {limit,offset,owner:publicKey.toString()};
-            const response:AxiosResponse<any> = await axios.post('https://api.superbonds.finance/getPendings',data);
-            if(response.data.pendings.length===0 && offset>0) {
-              fetchPrivateAPI(10,0);
-              return;
-            }
-
-          } catch (error) {
-            console.error(error);
-          }
-        }
-      }
-    }
-
-
-
-    useEffect(()=>{
-      let publicKey = wallet.publicKey;
-      if(wallet && publicKey) fetchPrivateAPI(10,0)
-    },[wallet])
-
-    useEffect(()=>{
-      fetchPublicAPI(10,0);
-      fetchPrivateAPI(10,0);
-    },[showAllTrade])
-
-
-
-
+  const handlePush=(route:string)=>{
+    window.location.assign('https://devnet.superbonds.finance/#/trade');
+  }
 
   return (
     <div className="w-screen h-screen  bg-black hero-section" >
@@ -369,7 +176,7 @@ export const HomeView = () => {
 
       <div
         className="flex relative justify-center w-full p-0 m-0  h-4/5 bg-no-repeat bg-cover py-3 home-section"
-        style={{ backgroundImage: `url(${bgimage})`,   }}
+        style={{ backgroundImage: `url(${bgimage})`,   }}  
       >
         <div className="absolute md:hidden">
           <img
@@ -407,14 +214,14 @@ export const HomeView = () => {
                 alt="..."
               />
             </div>
-            <Text className="block mb-7 mt-4" size="24px" weight="true">
+            <Text className="block my-8" size="24px" weight="true">
               Financial NFT Market
             </Text>
           </div>
           <div className="flex justify-center">
             <button
               onClick={() =>
-                handlePush("/trade")
+                handlePush("https://devnet.superbonds.finance/#/trade")
               }
               className="w-48  z-40 rounded-md bg-green-100 px-4 py-2 inline-block text-center"
             >
@@ -440,16 +247,6 @@ export const HomeView = () => {
                 Docs
               </TextDoc>
             </button>
-          </div>
-          <div className="flex justify-center">
-            <div className="home_widget w-96 flex flex-col items-center">
-              <Text transform className='text-center' size={"14px"} spacing={'0px'} weight='bold' >Total Bonds Available</Text>
-              <Text className='text-center' size={"19px"} color={'#01A0FC'}><span ><strong>{(bond_yield90 || bond_yield30) ?
-               formatNumberWithoutRounding.format(
-                (bond_yield90 ? ((adjustedLiquidity90 * tradeLiquidityAvailability90 / (((1 + (bond_yield90/100))**(90/365)) - 1))/0.35) : 0) +
-                (bond_yield30 ? ((adjustedLiquidity30 * tradeLiquidityAvailability30 / (((1 + (bond_yield30/100))**(30/365)) - 1))/0.35) : 0))
-                :"0.00"}</strong></span></Text>
-            </div>
           </div>
         </div>
 
@@ -642,12 +439,12 @@ export const HomeView = () => {
           <div className="flex justify-center">
             <button
               onClick={() =>
-                handlePush("/trade")
+                handlePush("https://devnet.superbonds.finance/#/trade")
               }
               className="text-black bg-green-100 rounded-md px-6 py-4"
             >
               <TextDoc transform="" className="" size="16px" weight="true">
-                LAUNCH DAPP
+                LAUNCH DEVNET
               </TextDoc>
             </button>
           </div>

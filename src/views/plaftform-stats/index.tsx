@@ -76,7 +76,7 @@ export function PlatformStatsView() {
     }
 
     useEffect( () => {
-      //if (!wallet.publicKey) return;
+      if (!wallet.publicKey) return;
       getPlatformData()
       getAllBalances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,7 +117,21 @@ export function PlatformStatsView() {
       }
     }
     const getPlatformData = async () => {
-
+        if ( !wallet){
+          notify({
+            message: 'Please connect to Sol network',
+            type: "error",
+          });
+          return;
+        }
+        let publicKey = wallet.publicKey;
+        if (!publicKey){
+          notify({
+            message: 'Please connect to Solana network',
+            type: "error",
+          });
+          return;
+        }
         // const encodedPoolDataState = (await connection.getAccountInfo(PLATFORM_DATA_ACCOUNT, 'singleGossip'))!.data;
         // const decodedPoolDataState = PLATFORM_DATA_LAYOUT.decode(encodedPoolDataState) as PlatformDataLayout;
         // console.log(decodedPoolDataState);
@@ -247,7 +261,7 @@ export function PlatformStatsView() {
     <div className="w-screen h-screen bg-black ">
         <div className="w-11/12 my-0 mx-auto pt-28 " style={{maxWidth:"1540px"}}>
 
-           <div className="flex pt-6 justify-between flex-wrap ">
+            <div className="flex pt-6 justify-between flex-wrap ">
                 <div className="flex flex-col w-full my-0 mx-auto 2xxl:mt-3 mb-3">
                     <div className="flex w-7/12 mx-auto my-0 flex-wrap justify-evenly sm:justify-start">
                         <button className="border-2 rounded-md border-green-100 px-6 py-1.5 inline-block"  onClick={() => onGetFreeSol()}>

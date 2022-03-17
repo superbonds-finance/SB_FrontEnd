@@ -1,67 +1,64 @@
 import { PublicKey } from "@solana/web3.js";
 
 export const SUPERBONDS_PROGRAM_ID = new PublicKey(
-  "HD5i5baeWwrnt86GduAAQ977BsTUXHTnV4A7ndUSkmdq"
+  "3uYxUhAgj5Bho1xtY9Sq64R5QpPagbG2yDBmxkjsek5J"
 );
 
 //Store Staking Data
 export const STAKING_DATA_ACCOUNT = new PublicKey(
-  "GuE2eHnXen3ngLzbhUyZAM7wmR3jEHihibFw9cUrEdct"
+  "29bneiPt3BDoFzUr3eLnungJG1dzGjNLZMhFu5YHroRE"
 );
 
 //Store Platform Data
 export const PLATFORM_DATA_ACCOUNT = new PublicKey(
-  "8gLMAXTCrwZsa7sguahZ9SPEqeSipwMfnBrZxLJ1gtpV"
+  "95YooxeA75GwP3D8jmBoyiYFWm3wyJKstd53R9T8dMhx"
 );
 
 //Hold 6B SuperB
 export const SUPERB_REWARDS_POOL_ADDRESS = new PublicKey(
-  "tMCKPPFW4Y1giHPbttag5ne33QGVsgRNWXsfntsxyDy"
+  "FBdwnLwpV8sUAaRrH2qdEDU59WnicT4KVtZxgUBmce5y"
 );
 // Treasury Account hold USDC
 export const TREASURY_ADDRESS = new PublicKey(
-  "EsLnzbGemkXzuXnHJzvtk1sMxA1bCgWvv8sxGKjrrvLx"
+  "Bw9fSnsk7oPt3yafZpcj4ev4WdyB1S8hcRgAAntErL3c"
 );
 // Treasury Account hold SuperB
 export const TREASURY_SUPERB_ADDRESS = new PublicKey(
-  "ApQxLjtCzk3Hz15rK2ofUGJoYtKv6msi5qnR2FvMmi4V"
+  "8uUZrJvXsk24bXXsvfho8e1tCa6PQtMzRBNwcC3TQWWh"
 );
 // Account that holds the SuperB fee
 export const SUPERB_POOL_ADDRESS = new PublicKey(
-  "9KZSfpDxwtanGNZpUKnyMpD7gtfs2uAd9yMyqiCqT9KT"
+  "HNXUoCY5Jn52a3pHrNcQpU9eMsX7o3xBrkR98R9eNDTv"
 );
 
 export const POOL_30_ADDRESS = new PublicKey(
-  "FbFDRtApHrPfnk2suqYq1yAEnni2cjfiQGDaSug7myej"
+  "AJovBREZN4cwpm4NUoUX6onhbeRq3op7HAgTmFBgVuCG"
 );
 export const POOL_90_ADDRESS = new PublicKey(
-  "D6DfapEZrooYeXL5yxURbMdaJN7Ay4NRu8z8BDhMkb66"
+  "FD1sLSXULZZVRn91wd6b4XwZLdg87hQpNCsNsKywttGw"
 );
 
 export const LP_TOKEN_30_MINT_ADDRESS = new PublicKey(
-  "6hQMAb84Tx4iW1no1XTHDsFLRYf4hojJ4ja6KYxHVSE"
+  "BM3wZwXZ33JM8oXR9SXFL7jdhdMY5qunwjuzDFHNxHhT"
 );
 
 export const LP_TOKEN_90_MINT_ADDRESS = new PublicKey(
-  "1nbmE2VV6ThiPoZa1MPDcybsJ9vUSjXtk6ANbykBcSJ"
+  "EW4nZZLxGPNBiSuuM1JWYUmwrABGKiWdh4Bz5xnCS5hm"
 );
+
 
 //DEVNET SUPERB and USDC
 export const SUPERB_MINT_ADDRESS = new PublicKey(
   "H8pSXLW192Q8jzc272yQCCRrpphbZCGR3id8XEEw6JSa"
 );
+
+// export const USDT_MINT_ADDRESS = new PublicKey(
+//   "EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS"
+// );
+
 export const USDC_MINT_ADDRESS = new PublicKey(
   "2tWC4JAdL4AxEFJySziYJfsAnW2MHKRo98vbAPiRDSk8"
 );
-
-//MAINET SUPERB and USDC
-// export const SUPERB_MINT_ADDRESS = new PublicKey(
-//   "SuperbZyz7TsSdSoFAZ6RYHfAWe9NmjXBLVQpS8hqdx"
-// );
-//
-// export const USDC_MINT_ADDRESS = new PublicKey(
-//   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
-// );
 
 
 export const SUNNY_MINT_ADDRESS = new PublicKey(

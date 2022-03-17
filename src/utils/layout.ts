@@ -46,50 +46,6 @@ export const publickey_array5 = (property = "publickey_array5"): unknown => {
 
 };
 
-export const publickey_array11 = (property = "publickey_array11"): unknown => {
-  const layout = BufferLayout.blob(352, property);
-
-  const _decode = layout.decode.bind(layout);
-  const _encode = layout.encode.bind(layout);
-
-  layout.decode = (buffer: Buffer, offset: number) => {
-    const data = _decode(buffer, offset);
-    let ret = <any>[];
-    for (var j=0;j<11;j++){
-      let temp_bytes = <any>[];
-      for (var k=0;k<32;k++){
-        temp_bytes.push(data[j*32+k]);
-      }
-      ret.push(new PublicKey(temp_bytes))
-    }
-    return ret;
-  };
-
-  layout.encode = (num: [PublicKey], buffer: Buffer, offset: number) => {
-
-    let data = <any>[];
-    for (var j=0;j<11;j++){
-      let item = num[j];
-      const a = item.toBuffer();
-      let b = Buffer.from(a);
-      if (b.length !== 32) {
-        const zeroPad = Buffer.alloc(32);
-        b.copy(zeroPad);
-        b = zeroPad;
-      }
-      for (var k=0;k<32;k++){
-        data.push(b[k]);
-      }
-
-    }
-
-    return _encode(data.toBuffer(), buffer, offset);
-  };
-
-  return layout;
-
-};
-
 export const publickey_array30 = (property = "publickey_array30"): unknown => {
   const layout = BufferLayout.blob(960, property);
 

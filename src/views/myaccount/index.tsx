@@ -102,7 +102,7 @@ export  function MyAccountView() {
     if (!publicKey) return;
 
   }
-
+ 
   const CopyAction=()=>{
     notify({
       message: 'Copied Successfully!',
@@ -139,7 +139,7 @@ export  function MyAccountView() {
     else{
       setOffset(offset+0);
       fetchPrivateAPI(limit,x_paginationcursor);
-    }
+    }     
   }
 
 
@@ -150,7 +150,7 @@ export  function MyAccountView() {
           text=''
           USDCbalance={USDCbalance}
           SuperBbalance={SuperBbalance}
-          divStyle=' 3xl:justify-end 2xxl:justify-end 2xl:justify-end xl:justify-end lg:justify-end md:justify-end sm:justify-end '
+          divStyle=' lg:mb-3'
         />
 
         <div className="flex justify-between md:flex-col mb-3 mt-3 flex-wrap">

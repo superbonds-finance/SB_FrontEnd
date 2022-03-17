@@ -23,7 +23,7 @@ font-family: 'Archivo';
   font-size: ${(props) => (props.size ? props.size : '14px')};
   line-height: 22px;
   text-transform: ${(props) => (props.transform ? "uppercase" : 'none')};
-  letter-spacing:${(props) => (props.spacing ?props.spacing : '0.5px')};;
+  letter-spacing:0.5px;
   color: ${(props) => (props.color ? props.color : '#FFFFFF')};
   opacity: ${(props) => (props.opacity ? props.opacity : '')};
   background: transparent;

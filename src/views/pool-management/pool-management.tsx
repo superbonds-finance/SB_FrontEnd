@@ -864,84 +864,6 @@ export const PoolManagementView = () => {
       onRefresh();
     }
   }
-
-  const updateLP_Price = async (pool:number) =>{
-    if (!wallet){
-      notify({
-        message: 'Please connect to Solana network',
-        type: "error",
-      });
-      return;
-    }
-    let publicKey = wallet.publicKey;
-    if (!publicKey){
-      notify({
-        message: 'Please connect to Solana network',
-        type: "error",
-      });
-      return;
-    }
-    let pool_address = pool == 30 ? POOL_30_ADDRESS : POOL_90_ADDRESS;
-    let lp_token_mint_address = pool == 30 ? LP_TOKEN_30_MINT_ADDRESS : LP_TOKEN_90_MINT_ADDRESS;
-
-    const encodedPoolDataState = (await connection.getAccountInfo(pool_address, 'singleGossip'))!.data;
-    const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-
-    const encodedStakingDataState = (await connection.getAccountInfo(PLATFORM_DATA_ACCOUNT, 'singleGossip'))!.data;
-    const decodedStakingDataState = PLATFORM_DATA_LAYOUT.decode(encodedStakingDataState) as PlatformDataLayout;
-
-    if (decodedStakingDataState.operator_account.toString() != publicKey.toString()){
-      notify({
-        message: 'Only Operator Account allowed',
-        type: "error",
-      });
-      return;
-    }
-
-    // const encodedPoolDataState = (await connection.getAccountInfo(pool_address, 'singleGossip'))!.data;
-    // const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-    // let platform_account_info = next_account_info(account_info_iter)?;
-    // let state_pool_info = next_account_info(account_info_iter)?;
-    // let lp_pool_account_info = next_account_info(account_info_iter)?;
-    // let lp_token_mint_account_info = next_account_info(account_info_iter)?;
-    // let operator_account_info = next_account_info(account_info_iter)?;
-    // let token_program_info = next_account_info(account_info_iter)?;
-
-    const buffers = [
-      Buffer.from(Uint8Array.of(43))
-    ];
-    //console.log(Buffer.concat(buffers));
-    const updateLPPriceIx = new TransactionInstruction({
-        programId: SUPERBONDS_PROGRAM_ID,
-        keys: [
-            { pubkey: PLATFORM_DATA_ACCOUNT, isSigner: false, isWritable: true },
-            { pubkey: pool_address, isSigner: false, isWritable: true },
-            { pubkey: new PublicKey(decodedPoolDataState.LP_Pool), isSigner: false, isWritable: false },
-            { pubkey: lp_token_mint_address, isSigner: false, isWritable: false },
-            { pubkey: publicKey, isSigner: true, isWritable: false },
-            { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-        ],
-        data: Buffer.concat(buffers)
-    });
-    let transactions = [
-      updateLPPriceIx
-    ];
-
-    let txid = await sendTransaction(connection,wallet,transactions,[],false);
-    if (!txid){
-      notify({
-        message: 'Something wrong with your request!',
-        type: "error",
-      });
-    }else{
-      notify({
-        message: 'update LP Price request sent successfully',
-        type: "success",
-      });
-      await delay(2000);
-      onRefresh();
-    }
-  }
   return (
     <div>
       <br/>
@@ -993,13 +915,6 @@ export const PoolManagementView = () => {
           </Button>
           <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => setSuperBonds(90,0)}>
             Turn off SuperBonds 90-day Pool
-          </Button>
-          <br/><br/>
-          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => updateLP_Price(30)}>
-            Update LP Price 30-day pool
-          </Button>
-          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => updateLP_Price(90)}>
-            Update LP Price 90-day pool
           </Button>
         </Col>
 

@@ -1,10 +1,10 @@
 
 import * as BufferLayout from "buffer-layout";
-import {uint64,publicKey,uint32_array15, uint8_array15, publickey_array30, publickey_array5,publickey_array11} from "./layout";
+import {uint64,publicKey,uint32_array15, uint8_array15, publickey_array30, publickey_array5} from "./layout";
 
 export const PLATFORM_DATA_LAYOUT = BufferLayout.struct([
   publicKey("staking_account"),
-  publickey_array11("admin_accounts"),
+  publickey_array5("admin_accounts"),
   publicKey("governance_account"),
   publicKey("operator_account"),
   publicKey("SuperB_Mint_Account"),

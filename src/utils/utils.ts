@@ -24,21 +24,17 @@ export const getTokenSupply = async (connection:any,mintAccount:PublicKey) =>{
 
 export const getTokenBalance = async (connection:any,publicKey:PublicKey,mintAccount:PublicKey,decimals:number) =>{
   //console.log('publicKey',publicKey.toBase58(),'mintAccount',mintAccount.toBase58());
-  try {
-    let accounts = (await connection.getTokenAccountsByOwner(publicKey,{ mint: mintAccount })).value;
-    //console.log('accounts',accounts);
-    //console.log(AccountLayout.decode(accounts[0].account.data));
-    let length = accounts.length;
-    let balance = 0;
-    for (var i=0;i<length;i++){
-      let token_account_info = AccountLayout.decode(accounts[i].account.data);
-      balance += new BN(token_account_info.amount, 10, "le").toNumber()/10**decimals;
-    }
-    return balance;
+  let accounts = (await connection.getTokenAccountsByOwner(publicKey,{ mint: mintAccount })).value;
+
+  //console.log('accounts',accounts);
+  //console.log(AccountLayout.decode(accounts[0].account.data));
+  let length = accounts.length;
+  let balance = 0;
+  for (var i=0;i<length;i++){
+    let token_account_info = AccountLayout.decode(accounts[i].account.data);
+    balance += new BN(token_account_info.amount, 10, "le").toNumber()/10**decimals;
   }
-  catch (e){
-    return 0;
-  }
+  return balance;
 
 }
 
@@ -364,10 +360,10 @@ export function convert(
 //   console.log("ss",number)
 //   let str = number.toString();
 //   if(str.indexOf('.')){
-//     str = str.slice(0, (str.indexOf(".")) + val + 1);
-//     return Number(str);
+//     str = str.slice(0, (str.indexOf(".")) + val + 1); 
+//     return Number(str); 
 //   }
-//   return Number(str);
+//   return Number(str);  
 // }
 
 
@@ -389,7 +385,7 @@ export const formatInputNumber = (value:any)=>{
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return parts.join(".");
 }
-
+ 
 
 
 export const numOnly = (event:any) => {
@@ -413,5 +409,5 @@ export const noSpecial = (evt:any) => {
 };
 
 export const unformatInputNumber = (value:any)=>{
-  return value.replaceAll(',','')
+  return value.replaceAll(',','')  
 }

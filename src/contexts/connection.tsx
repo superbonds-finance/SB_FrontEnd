@@ -27,13 +27,23 @@ export const ENDPOINTS = [
     chainID: ChainID.MainnetBeta,
   },
   {
+    name: "testnet" as ENV,
+    endpoint: clusterApiUrl("testnet"),
+    chainID: ChainID.Testnet,
+  },
+  {
     name: "devnet" as ENV,
     endpoint: clusterApiUrl("devnet"),
     chainID: ChainID.Devnet,
-  }
+  },
+  {
+    name: "localnet" as ENV,
+    endpoint: "http://127.0.0.1:8899",
+    chainID: ChainID.Devnet,
+  },
 ];
 
-const DEFAULT = ENDPOINTS[1].endpoint;
+const DEFAULT = ENDPOINTS[2].endpoint;
 const DEFAULT_SLIPPAGE = 0.25;
 
 interface ConnectionConfig {
@@ -55,7 +65,7 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   setSlippage: (val: number) => {},
   connection: new Connection(DEFAULT, "recent"),
   sendConnection: new Connection(DEFAULT, "recent"),
-  env: ENDPOINTS[1].name,
+  env: ENDPOINTS[2].name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
 });
@@ -63,7 +73,7 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
 export function ConnectionProvider({ children = undefined as any }) {
   const [endpoint, setEndpoint] = useLocalStorageState(
     "connectionEndpts",
-    ENDPOINTS[1].endpoint
+    ENDPOINTS[2].endpoint
   );
 
   const [slippage, setSlippage] = useLocalStorageState(
@@ -79,11 +89,39 @@ export function ConnectionProvider({ children = undefined as any }) {
   ]);
 
   const chain =
-    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[1];
+    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[2];
   const env = chain.name;
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
+  // useEffect(() => {
+  //   cache.clear();
+  //   // fetch token files
+  //   (async () => {
+  //     const res = await new TokenListProvider().resolve();
+  //     const list = res
+  //       .filterByChainId(chain.chainID)
+  //       .excludeByTag("nft")
+  //       .getList();
+  //     const knownMints = list.reduce((map, item) => {
+  //       map.set(item.address, item);
+  //       return map;
+  //     }, new Map<string, TokenInfo>());
+  //
+  //     const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
+  //     accounts.keys.forEach((key, index) => {
+  //       const account = accounts.array[index];
+  //       if(!account) {
+  //         return;
+  //       }
+  //
+  //       cache.add(new PublicKey(key), account, MintParser);
+  //     })
+  //
+  //     setTokenMap(knownMints);
+  //     setTokens(list);
+  //   })();
+  // }, [connection, chain]);
 
   setProgramIds(env);
 

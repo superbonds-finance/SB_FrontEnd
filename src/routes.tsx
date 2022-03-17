@@ -3,6 +3,7 @@ import React, { useMemo } from "react";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { ConnectionProvider } from "./contexts/connection";
 import { AccountsProvider } from "./contexts/accounts";
+import { MarketProvider } from "./contexts/market";
 import { AppLayout } from "./components/Layout";
 
 import {  HomeView,
@@ -53,27 +54,26 @@ export function Routes() {
       <ConnectionProvider>
         <WalletProvider wallets={wallets} autoConnect>
           <AccountsProvider>
-
+            <MarketProvider>
               <AppLayout>
                 <Switch>
                   <Route exact path="/" component={() => <HomeView />} />
-                  <Route exact path="/myaccount" children={<MyAccountView />} />
+                  {/* <Route exact path="/myaccount" children={<MyAccountView />} />
                   <Route exact path="/pool-management" children={<PoolManagementView />} />
                   <Route exact path="/platform-settings" children={<StakingManagementView />} />
                   <Route exact path="/liquidity" children={<LiquidityView />} />
                   <Route exact path="/trade" children={<TradeView />} />
-                  {/* <Route exact path="/trade-ui" children={<TradeViewUI />} /> */}
                   <Route exact path="/stake" children={<StakeView />} />
                   <Route exact path="/redeem/:trade_account" children={<RedeemView />} />
                   <Route exact path="/governance" children={<GovernanceView />} />
                   <Route exact path="/farming_rewards" children={<FarmingRewardsView />} />
-                  <Route exact path="/platform" children={<PlatformStatsView />} />
+                  <Route exact path="/platform" children={<PlatformStatsView />} /> */}
                 </Switch>
               </AppLayout>
-
+            </MarketProvider>
           </AccountsProvider>
         </WalletProvider>
       </ConnectionProvider>
     </HashRouter>
-  )
+  );
 }

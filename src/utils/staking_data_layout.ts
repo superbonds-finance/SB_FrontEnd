@@ -14,7 +14,6 @@ export const STAKING_DATA_LAYOUT = BufferLayout.struct([
   uint64_array15('lastRewardTime_LP_Token'),
   uint64_array15('totalProductivity_LP_Token'),
   uint64_array15('accAmountPerShare_LP_Token'),
-  BufferLayout.u8('initialized'),
 ]);
 
 export interface StakingDataLayout {
@@ -29,5 +28,4 @@ export interface StakingDataLayout {
   lastRewardTime_LP_Token: Uint8Array,
   totalProductivity_LP_Token: Uint8Array,
   accAmountPerShare_LP_Token: Uint8Array,
-  initialized: Uint8Array
 };

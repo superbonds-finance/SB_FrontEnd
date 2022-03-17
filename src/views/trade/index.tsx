@@ -53,9 +53,6 @@ import axios from 'axios';
 import {AxiosResponse} from 'axios';
 import {TradeTableComponent} from "./trade.table";
 import { useInterval } from "../../hooks";
-import "./trade.css"
-import PoligonActive from "../../assets/polygon_trade_active.png";
-import PoligonInActive from "../../assets/polygon_trade_inactive.png";
 
 export function TradeView() {
     const connection = useConnection();
@@ -64,16 +61,11 @@ export function TradeView() {
 
     const [data30pool,setData30pool] = useState<any>();
     const [data90pool,setData90pool] = useState<any>();
-    const [APY,setAPY] = useState<any>();
-
     const [showAllTrade,setAllTrade]=useState<number>(2);
 
     const [SOLbalance,setSOLbalance] = useState(0);
     const [USDCbalance,setUSDCbalance] = useState<any>(0);
     const [SuperBbalance,setSuperBbalance] = useState<any>(0);
-
-    // sm screen card selection
-    const [cardType,setCardType] = useState<string>('30');
 
     const getAllBalances = async () => {
       if ( !wallet){
@@ -104,7 +96,6 @@ export function TradeView() {
     const [adjustedLiquidity30,setAdjustedLiquidity30] = useState(0);
     const [tradeLiquidityAvailability30,setTradeLiquidityAvailability30] = useState(0);
     const [trade_fee_USDC30,setTrade_fee_USDC30] = useState(0);
-    
     const [transaction_fee_SuperB30,setTransaction_fee_SuperB30] = useState(0);
     const [SuperBonds_Rewards_Pool_30_Balance,setSuperBonds_Rewards_Pool_30_Balance] = useState(0);
     const [superBonds_status30,setsuperBonds_status30] = useState<any>("INACTIVE");
@@ -126,7 +117,7 @@ export function TradeView() {
     const [bondValueMaturity_90,setBondValueMaturity_90] = useState(0);
     const [stakingPool, setStakingPool] = useState<any>();
     const [lq_amount30, setLQ_Amount30] = useState<any>("");
-    const [lq_amount90, setLQ_Amount90] = useState<any>("");
+    const [lq_amount90, setLQ_Amount90] = useState("");
 
     const [Trade_dataSource,setTrade_dataSource] = useState<any>([]);
     const [myTradeData,setMyTradeData]=useState<any>([]);
@@ -139,6 +130,8 @@ export function TradeView() {
     };
 
     useEffect(() => {
+      if (!wallet.publicKey) return;
+      //console.log('Here');
       readPoolData_30();
       readPoolData_90();
       getStakingPoolData();
@@ -147,14 +140,13 @@ export function TradeView() {
     }, [wallet]);
 
     useEffect(() => {
-      //if (!wallet.publicKey) return;
+      if (!wallet.publicKey) return;
       if (data30pool) {
         setSuperBondsRate30(data30pool.superBonds_rate/100);
         setAdjustedLiquidity30(new BN(data30pool.adjustedLiquidity, 10, "le").toNumber()/1000000);
         setTradeLiquidityAvailability30(data30pool.trade_liquidity_availability/10000);
         setTrade_fee_USDC30(data30pool.trade_fee_USDC/10000);
         setTransaction_fee_SuperB30(new BN(data30pool.transaction_fee_SuperB, 10, "le").toNumber());
-        //console.log(data30pool.trade_liquidity_availability,new BN(data30pool.adjustedLiquidity, 10, "le").toNumber()/1000000);
       }
       if (data90pool) {
 
@@ -163,30 +155,28 @@ export function TradeView() {
         setTradeLiquidityAvailability90(data90pool.trade_liquidity_availability/10000);
         setTrade_fee_USDC90(data90pool.trade_fee_USDC/10000);
         setTransaction_fee_SuperB90(new BN(data90pool.transaction_fee_SuperB, 10, "le").toNumber());
-        //console.log(data90pool.trade_liquidity_availability);
       }
       superBondsProcess();
     }, [data30pool,data90pool]);
 
     const readPoolData_30 = async () => {
-      // if ( !wallet){
-      //   notify({
-      //     message: 'Please connect to Sol network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      // if (!wallet.publicKey){
-      //   notify({
-      //     message: 'Please connect to Solana network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
+      if ( !wallet){
+        notify({
+          message: 'Please connect to Sol network',
+          type: "error",
+        });
+        return;
+      }
+      if (!wallet.publicKey){
+        notify({
+          message: 'Please connect to Solana network',
+          type: "error",
+        });
+        return;
+      }
 
       const encodedPoolDataState = (await connection.getAccountInfo(POOL_30_ADDRESS, 'singleGossip'))!.data;
       const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-       console.log("asas",decodedPoolDataState)
       setData30pool(decodedPoolDataState);
 
       const encodeSuperBonds_Rewards_Pool_Account_ADDRESS = (await connection.getAccountInfo(new PublicKey(decodedPoolDataState.SuperBonds_Rewards_Pool), 'singleGossip'))!.data;
@@ -194,23 +184,22 @@ export function TradeView() {
       let SuperBonds_Rewards_Pool_Balance = new BN(decodeSuperBonds_Rewards_Pool_Account_ADDRESS.amount, 10, "le").toNumber() / (10**USDC_DECIMALS);
       setSuperBonds_Rewards_Pool_30_Balance(SuperBonds_Rewards_Pool_Balance);
 
-
     }
     const readPoolData_90 = async () => {
-      // if ( !wallet){
-      //   notify({
-      //     message: 'Please connect to Sol network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      // if (!wallet.publicKey){
-      //   notify({
-      //     message: 'Please connect to Solana network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
+      if ( !wallet){
+        notify({
+          message: 'Please connect to Sol network',
+          type: "error",
+        });
+        return;
+      }
+      if (!wallet.publicKey){
+        notify({
+          message: 'Please connect to Solana network',
+          type: "error",
+        });
+        return;
+      }
 
       const encodedPoolDataState = (await connection.getAccountInfo(POOL_90_ADDRESS, 'singleGossip'))!.data;
       const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
@@ -222,21 +211,21 @@ export function TradeView() {
       setSuperBonds_Rewards_Pool_90_Balance(SuperBonds_Rewards_Pool_Balance);
     }
     const getStakingPoolData = async () => {
-      // if ( !wallet){
-      //   notify({
-      //     message: 'Please connect to Sol network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
-      // let publicKey = wallet.publicKey;
-      // if (!publicKey){
-      //   notify({
-      //     message: 'Please connect to Solana network',
-      //     type: "error",
-      //   });
-      //   return;
-      // }
+      if ( !wallet){
+        notify({
+          message: 'Please connect to Sol network',
+          type: "error",
+        });
+        return;
+      }
+      let publicKey = wallet.publicKey;
+      if (!publicKey){
+        notify({
+          message: 'Please connect to Solana network',
+          type: "error",
+        });
+        return;
+      }
       const encodedPoolDataState = (await connection.getAccountInfo(PLATFORM_DATA_ACCOUNT, 'singleGossip'))!.data;
       const decodedPoolDataState = PLATFORM_DATA_LAYOUT.decode(encodedPoolDataState) as PlatformDataLayout;
       //console.log(decodedPoolDataState);
@@ -254,14 +243,10 @@ export function TradeView() {
       setLQ_Amount30(formatInputNumber(value))
       value = unformatInputNumber(value)
 
-      setBondValue_30(value);
-      let bondValueMaturity = value * ((1 + (bond_yield30/100))**(30/365));
-      setBondValueMaturity_30(bondValueMaturity);
-      /*
       let bondValueMaturity = parseFloat(value) * 1000;
       setBondValueMaturity_30(bondValueMaturity);
       let bondValue = bondValueMaturity / ((1 + (bond_yield30/100))**(30/365))
-      setBondValue_30(bondValue);*/
+      setBondValue_30(bondValue);
 
     };
     const onChangePar_value_90 =  (e:any) => {
@@ -270,15 +255,10 @@ export function TradeView() {
       setLQ_Amount90(formatInputNumber(value))
       value = unformatInputNumber(value)
 
-      setBondValue_90(value);
-      let bondValueMaturity = value * ((1 + (bond_yield90/100))**(90/365));
-      setBondValueMaturity_90(bondValueMaturity);
-
-      /*
       let bondValueMaturity = parseFloat(value) * 1000;
       setBondValueMaturity_90(bondValueMaturity);
       let bondValue = bondValueMaturity / ((1 + (bond_yield90/100))**(90/365))
-      setBondValue_90(bondValue);*/
+      setBondValue_90(bondValue);
 
     };
 
@@ -408,13 +388,13 @@ export function TradeView() {
                 </th>
                 <td class="text-right">
                   <span class="td_span small_font_td_span">
-                    ${Value_Message}</span>
+                    ${Value_Message.toFixed(3)}</span>
                 </td>
               </tr>
               <tr>
                 <th class="text-left">
                   <span class="th_span small_font_td_span">
-                    Trade Fees: </span>
+                    Fee: </span>
                 </th>
                 <td class="text-right">
                   <span class="td_span small_font_td_span">
@@ -424,11 +404,11 @@ export function TradeView() {
               <tr>
                 <th class="text-left">
                   <span class="th_span small_font_td_span">
-                    Platform Fees:</span>
+                    SB fee:</span>
                 </th>
                 <td class="text-right">
                   <span class="td_span small_font_td_span">
-                    ${(superB_fee / (10**SUPERB_DECIMALS)).toFixed(3)} SB</span>
+                    ${(superB_fee / (10**SUPERB_DECIMALS)).toFixed(3)}</span>
                 </td>
               </tr>
           </table>
@@ -513,14 +493,9 @@ export function TradeView() {
 
       //Create new SuperB token Account and transfer fee amount to it
       let superB_associated_token_account_address = await findAssociatedTokenAddress(publicKey,SUPERB_MINT_ADDRESS);
-      //Calculate min_interest
-      let longInterest = bondValueMaturity-bondValue;
-      let min_interest = longInterest * 0.95;
-      console.log('min_interest',min_interest);
+
       const buffers = [
-        Buffer.from(Uint8Array.of(15, ...new Numberu64(Math.round(toSend * (10**USDC_DECIMALS))).toBuffer(),
-          ...new Numberu64(Math.round(min_interest * (10**USDC_DECIMALS))).toBuffer()
-        ))
+        Buffer.from(Uint8Array.of(15, ...new Numberu64(Math.round(toSend * (10**USDC_DECIMALS))).toBuffer()))
       ];
       let datapool = pool == 30 ? data30pool : data90pool;
       //Look for Trader Data Account
@@ -789,14 +764,6 @@ export function TradeView() {
       }
     }
 
-   const fetchAPY= async ()=>{
-    const response:AxiosResponse<any> = await axios.get('https://api.superbonds.finance/Trade_Staking_APY');
-    setAPY(response.data.APY)
-   }
-
-   useEffect(()=>{
-    fetchAPY()
-   },[])
 
     useEffect(()=>{
       let publicKey = wallet.publicKey;
@@ -809,12 +776,12 @@ export function TradeView() {
     },[showAllTrade])
 
     useInterval(() => {
-      superBondsProcess();
-      // let publicKey = wallet.publicKey;
-      // if(wallet && publicKey){
-      //   superBondsProcess();
-      // }
+      let publicKey = wallet.publicKey;
+      if(wallet && publicKey){
+        superBondsProcess();
+      }
     }, 1000);
+
 
     const onSettle = async (pool:any,owner:any,usdc_account:any,data_account:any,amount:number) =>{
       if ( !wallet){
@@ -931,9 +898,9 @@ export function TradeView() {
             if (!superbondsStatus30){
               setSuperBondsStatus30(true);
             }
-            let bondValue = bondValue_30;//bondValueMaturity_30 / ((1 + (bond_yield30/100))**(30/365));
+            let bondValue = bondValueMaturity_30 / ((1 + (bond_yield30/100))**(30/365));
 
-            let BV_before_SB = bondValue * ((1 + (bond_yield30/100))**(30/365));
+            let BV_before_SB = bondValueMaturity_30;
             let BV_after_SB = bondValue * ((1 + (data30pool.superBonds_rate * bond_yield30/10000))**(30/365));
             let diff = BV_after_SB - BV_before_SB;
             let superbonds_rate = 1;
@@ -952,7 +919,8 @@ export function TradeView() {
             //console.log('superbonds_rate',superbonds_rate);
             setSuperBondsRate30(superbonds_rate);
 
-            setBondValueMaturity_30(bondValue * ((1 + (superbonds_rate*bond_yield30/100))**(30/365)))
+            bondValue = bondValueMaturity_30 / ((1 + (superbonds_rate*bond_yield30/100))**(30/365))
+            setBondValue_30(bondValue);
           }
 
         }
@@ -973,9 +941,9 @@ export function TradeView() {
             if (!superbondsStatus90){
               setSuperBondsStatus90(true);
             }
-            let bondValue = bondValue_90;//bondValueMaturity_90 / ((1 + (bond_yield90/100))**(90/365));
+            let bondValue = bondValueMaturity_90 / ((1 + (bond_yield90/100))**(90/365));
 
-            let BV_before_SB = bondValue * ((1 + (bond_yield90/100))**(90/365));
+            let BV_before_SB = bondValueMaturity_90;
             let BV_after_SB = bondValue * ((1 + (data90pool.superBonds_rate * bond_yield90/10000))**(90/365));
             let diff = BV_after_SB - BV_before_SB;
             let superbonds_rate = 1;
@@ -993,7 +961,8 @@ export function TradeView() {
             }
             //console.log('superbonds_rate',superbonds_rate);
             setSuperBondsRate90(superbonds_rate);
-            setBondValueMaturity_90(bondValue * ((1 + (superbonds_rate*bond_yield90/100))**(30/365)))
+            bondValue = bondValueMaturity_90 / ((1 + (superbonds_rate*bond_yield90/100))**(90/365))
+            setBondValue_90(bondValue);
           }
 
         }
@@ -1016,39 +985,16 @@ export function TradeView() {
         console.log("aasasas")
          setOffset(offset+0);
          showAllTrade==1?fetchPublicAPI(limit,x_paginationcursor):fetchPrivateAPI(limit,x_paginationcursor);
-        }
+        }     
    }
 
-   const findTradeUnit=(yld:number,day:number)=>{
+  const findTradeUnit=(yld:number,day:number)=>{
     const powPart2=day/365;
     const powPart1=1+(yld/100);
     const denominator=Math.pow(powPart1,powPart2)
     const result=1000/denominator;
 
     return 1000-result;
-  }
-
-  const handleMaxBalance=(pool:number)=>{
-    
-    //let amonuntForTradeAfterFeesDeduction=(USDCbalance - (USDCbalance*(trade_fee_USDC/100))) 
-    if(pool===30){
-      let netAmount=formatNumberWithoutRounding.format(USDCbalance-(USDCbalance*trade_fee_USDC30))
-      setLQ_Amount30(netAmount)
-      let value = unformatInputNumber(netAmount)
-
-      setBondValue_30(value);
-      let bondValueMaturity = value * ((1 + (bond_yield30/100))**(30/365));
-      setBondValueMaturity_30(bondValueMaturity);
-
-    }
-    else {
-      let netAmount=formatNumberWithoutRounding.format(USDCbalance-(USDCbalance*trade_fee_USDC90))
-      setLQ_Amount90(netAmount)
-      let value = unformatInputNumber(netAmount)
-      setBondValue_90(value);
-      let bondValueMaturity = value * ((1 + (bond_yield90/100))**(90/365));
-      setBondValueMaturity_90(bondValueMaturity);
-    }
   }
 
     return (
@@ -1062,26 +1008,13 @@ export function TradeView() {
                       divStyle=''
                     />
                     <div className='flex pt-6 justify-center md:flex-wrap'>
-                        <div className={`flex w-6/12 md:w-full flex-col bg-gray-300 pb-7 neon-bottom-card selected-box-neon  rounded-md ${superBonds_status30 ==='ACTIVE'?'neon-bottom-card selected-box-neon':''} ${cardType === '30'? 'sm:block':'sm:hidden'}` }>
+                        <div className={`flex w-6/12 md:w-full flex-col bg-gray-300 py-7 px-7 rounded-md sm:py-3 sm:px-2  ${superBonds_status30 ==='ACTIVE'?'box':'neon-bottom-card selected-box-neon'}` }>
 
-                          <div className={`flex justify-between rounded-t-md py-3 px-3 ${superBonds_status30 ==='ACTIVE'?'sb-activated':'bg-gray-200'} select-none`}>
-                            <Text className='sm:hidden' weight={'true'} size ={"16px"} transform={"true"} color={superBonds_status30 ==='ACTIVE' ? "#334150":"white"} style={{ fontFamily:"Archivo"}}>30-day pool</Text>
-                            {superBonds_status30 ==='ACTIVE' && <Text weight={'true'} spacing='0.3em' size ={"16px"} transform={"true"} color={"#334150"} style={{ fontFamily:"Bai Jamjuree"}}>superbonds ACTIVATED</Text>}
+                          <div className="text-center select-none">
+                            <Text weight={'true'} size ={"16px"} transform={"true"} color={"#7CFA4C"} style={{ fontFamily:"Archivo"}}>30-day pool</Text>
                           </div>
 
-                          <div className="grid-cols-2 mt-3 items-center hidden sm:grid">
-                            <div className="col-span-1 text-center cursor-pointer" onClick={()=>setCardType('30')}>
-                              <Text weight={'true'} size ={"16px"} transform={"true"} color={cardType === '30' ? "#7CFA4C":"#435160"} style={{ fontFamily:"Archivo"}}>30-day pool</Text>
-                              <div className="hidden lg:block md:hidden sm:block w-10/12 m-auto" style={{borderBottom: '3px solid '+ ((cardType === '30' )? '#7CFA4C':'#435160'),  marginBottom: '6px'}}></div>
-                            </div>
-                            <div className="col-span-1 text-center cursor-pointer" onClick={()=>setCardType('90')}>
-                              <Text weight={'true'} size ={"16px"} transform={"true"} color={cardType === '90' ? "#7CFA4C":"#435160"} style={{ fontFamily:"Archivo"}}>90-day pool</Text>
-                              <div className="hidden lg:block md:hidden sm:block w-10/12 m-auto" style={{borderBottom: '3px solid '+ ((cardType === '90' )? '#7CFA4C':'#435160'),  marginBottom: '6px'}}></div>
-                            </div>
-                          </div>
-
-                          <div className='px-7 sm:px-4'>
-                          {/* <div className="grid grid-cols-3 gap-2 mt-3 rounded-md" style={{height:'152px'}}>
+                          <div className="grid grid-cols-3 gap-2 mt-3 rounded-md" style={{height:'152px'}}>
                             <div className="flex flex-col items-center text-center justify-center">
                               {superBonds_status30 ==='ACTIVE' && <Text   size='20px' weight color='#7CFA4C' className="blink-text select-none">SuperBonds Active</Text>}
                               {superBonds_status30 ==='INACTIVE' && <Text className='select-none' size='20px' weight color='#7CFA4C'>SuperBonds Inactive</Text>}
@@ -1104,83 +1037,47 @@ export function TradeView() {
                               <Text className='mt-1' size='19px' weight='600' color='white'>{(SuperBonds_Rewards_Pool_30_Balance).toFixed(2)}</Text>
                               <Text size='12px' opacity='0.7'>USDC</Text>
                             </div>
-                          </div> */}
-
-                          <div className="grid grid-cols-10 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-5 mt-3 rounded-md items-center">
-
-                            <div className="flex flex-col items-center col-span-3 lg:col-span-2 md:col-span-1 sm:col-span-2">
-                              <div className="flex flex-col text-center bg-no-repeat bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'147px',backgroundImage: `url(${PoligonActive})`}}>
-                                <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>TOTAL APY</Text>
-                                <Text className="" size={"14px"} color={"#9CF61C"}><span style={{color:"#9CF61C"}}><strong>{(APY+ bond_yield30)>0?formatNumberWithoutRounding.format(APY+ bond_yield30):"0.00"}%</strong></span></Text>
-                              </div>
-                              {/* {superBonds_status30 === 'ACTIVE' &&
-                                <div className="flex flex-col text-center bg-no-repeat bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'147px',backgroundImage: `url(${PoligonActive})`}}>
-                                  <Text className="" size={"16px"} color={"#9CF61C"}><span style={{color:"#9CF61C"}}><strong>{formatNumberWithoutRounding.format(APY+ bond_yield30)}</strong></span></Text>
-                                  <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>TOTAL APY</Text>
-                                </div>
-                              }
-                              {superBonds_status30 ==='INACTIVE' &&
-                               <div className="flex flex-col text-center bg-no-repeat mt-3 bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'147px',backgroundImage: `url(${PoligonInActive})`}}>
-                                  <Text className="" size={"16px"} color={"#9CF61C"}><span style={{color: "#7c7c7c" }}><strong>{formatNumberWithoutRounding.format(APY+ bond_yield30)}</strong></span></Text>
-                                  <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>TOTAL APY</Text>
-                               </div>} */}
-                            </div>
-
-                            <div className="w-full p-3 rounded-md col-span-7 lg:col-span-3 md:col-span-3 sm:col-span-3" style={{height:"max-content" ,"background": (superBonds_status30 ==='ACTIVE')? '#263B31':'#161D23'}}>
-                                <div className="flex justify-evenly lg:flex-col md:flex-row sm:flex-col lg:justify-start md:justify-evenly sm:justify-start">
-                                    <div className="flex flex-col">
-                                        <Text size={"14px"} opacity={"0.75"} spacing={'0px'} weight='bold' >Total Bonds Available</Text>
-                                        <Text size={"19px"} color={(superBonds_status30 ==='ACTIVE')? (bond_yield90>=0 ? "#7CFA4C" : "red"):"#5C7188"}><span ><strong>{bond_yield30 ?formatNumberWithoutRounding.format((adjustedLiquidity30 * tradeLiquidityAvailability30 / (((1 + (bond_yield30/100))**(30/365)) - 1))/0.35):"0.00"}</strong></span></Text>
-                                        <Text size={"9px"} opacity={"0.75"} spacing={'0px'} weight='bold'>USDC</Text>
-                                    </div>
-                                    <div className="lg:hidden md:block sm:hidden" style={{paddingLeft:'6px' , borderLeft: '3px solid '+ ((superBonds_status30 ==='ACTIVE' )? '#1A232B':'#5C7188')/* ,height: '-1px' */}}></div>
-                                    <div className="hidden lg:block md:hidden sm:block" style={{borderBottom: '3px solid '+ ((superBonds_status30 ==='ACTIVE' )? '#1A232B':'#5C7188'),  marginBottom: '6px'}}></div>
-                                    <div className="flex flex-col">
-                                        <Text size={"14px"} opacity={"0.75"} spacing={'0px'} weight='bold' >SuperBonds Pool</Text>
-                                        <Text size={"19px"} color={(superBonds_status30 ==='ACTIVE')? (bond_yield90>=0 ? "#7CFA4C" : "red"):"#5C7188"}><span ><strong>{(SuperBonds_Rewards_Pool_30_Balance).toFixed(2)}</strong></span></Text>
-                                        <Text size={"9px"} opacity={"0.75"} spacing={'0px'} weight='bold'>USDC</Text>
-                                    </div>
-                                </div>
-                            </div>
                           </div>
-                            <div className="bg-gray-200 py-1 px-1 sm:p-1 mt-5 rounded-md">
-                                <div className="w-full p-4 rounded-md bg-gray-400" >
-                                  <div className='grid grid-cols-3'>
-                                    <Text weight='true' className="col-span-2" opacity={"0.75"} >Fixed Yield</Text>
-                                    <Text className="" size={"19px"} color={"#7CFA4C"}><span style={{color: bond_yield30>=0 ? "#7CFA4C" : "red"}}><strong>{superbondsStatus30 ? Math.floor(bond_yield30*superbondsRate30*100)/100 : bond_yield30}%</strong></span></Text>
-                                  </div>
 
-                                  <div className='grid grid-cols-3'>
-                                    <Text weight='true' className="col-span-2" opacity={"0.75"}>Days to Maturity</Text>
-                                    <Text className='' size={"19px"}color={'white'}>30</Text>
-                                  </div>
+                            <div className="bg-gray-200 py-3 p-4 sm:p-1 mt-5 rounded-md">
+                                <div className="w-full p-4 rounded-md" style={{"background":'linear-gradient(0deg, rgba(124, 250, 76, 0.2), rgba(124, 250, 76, 0.2)), #1F2933'}}>
+                                    <table className="w-full">
+                                        <tr>
+                                            <th className="float-left"><Text opacity={"0.75"} >Annualized Yield:</Text></th>
+                                            <td  className="float-right"><Text size={"19px"} color={"#9CF61C"}><span style={{color: bond_yield30>=0 ? "#9CF61C" : "red"}}><strong>{superbondsStatus30 ? Math.floor(bond_yield30*superbondsRate30*100)/100 : bond_yield30}%</strong></span></Text></td>
+                                        </tr>
+                                        <tr>
+                                            <th className="float-left">  <Text opacity={"0.75"}>Days to Maturity:</Text></th>
+                                            <td className="float-right" ><Text className='mr-4' size={"19px"}color={'white'}>30</Text></td>
+                                        </tr>
+                                    </table>
                                 </div>
                                 <div className="w-full p-4 rounded-md">
-                                  <div className='grid grid-cols-3'>
-                                      <Text weight='true' className="col-span-2" opacity={"50%"} >Max Trade</Text>
-                                      <span><Text size='15px'>{bond_yield30 ?formatNumberWithoutRounding.format(adjustedLiquidity30 * tradeLiquidityAvailability30 / (((1 + (bond_yield30/100))**(30/365)) - 1)):"0.00"}</Text><Text className='ml-1' size='12px'>USDC</Text></span>
-                                    </div>
-
-                                    <div className='grid grid-cols-3'>
-                                      <Text weight='true' className="col-span-2" opacity={"50%"}>Bond Value at Entrance</Text>
-                                      <Text className='' size={"19px"}color={'white'}><Text size='15px'>{formatNumberWithoutRounding.format(bondValue_30)}</Text><Text className='ml-1' size='12px'>USDC</Text></Text>
-                                    </div>
-
-                                    <div className='grid grid-cols-3'>
-                                      <Text weight='true' className="col-span-2" opacity={"50%"}>Bond Value at Maturity</Text>
-                                      <Text className='' size={"19px"}color={'white'}><Text size='15px'><Text className='' size={"19px"}color={'white'}><Text size='15px'>{formatNumberWithoutRounding.format(bondValueMaturity_30)}</Text><Text className='ml-1' size='12px'>USDC</Text></Text></Text></Text>
-                                    </div>
+                                    <table className="w-full">
+                                        <tr>
+                                            <th className="float-left"><Text opacity={"50%"} >Max Trade:</Text></th>
+                                            <td className="float-right"><Text size='15px'>{bond_yield30 ?formatNumberWithoutRounding.format((adjustedLiquidity30 * tradeLiquidityAvailability30)/findTradeUnit((superbondsStatus30 ? Math.floor(bond_yield30*superbondsRate30*100)/100 : bond_yield30),30)):"0.00"}</Text><Text className='ml-1' size='12px'>UNITS</Text></td>
+                                        </tr>
+                                        <tr>
+                                            <th className="float-left">  <Text opacity={"0.5"}>Bond Value at Entrance:</Text></th>
+                                            <td className="float-right"><Text size='15px'>{formatNumberWithoutRounding.format(bondValue_30)}</Text><Text className='ml-1' size='12px'>USDC</Text></td>
+                                        </tr>
+                                        <tr>
+                                            <th className="float-left"><Text opacity={"0.5"}>Bond Value at Maturity:</Text></th>
+                                            <td className="float-right"><Text size='15px'>{formatNumberWithoutRounding.format(bondValueMaturity_30)}</Text></td>
+                                        </tr>
+                                    </table>
                                 </div>
 
                             </div>
 
                             <div className=" bg-gray-200 py-3 px-3 border rounded-md mt-3 align-middle">
-                              <div className='grid grid-cols-2 gap-2'>
+                              <div className='grid grid-cols-3 gap-2'>
                                 <div className="flex flex-col">
-                                  <Text size='15px' weight className="" opacity={"0.5"}>Amount</Text>
-                                  <Text size='12px' className="cursor-pointer" opacity={"0.5"} onClick={()=>handleMaxBalance(30)}>Balance: {formatNumberWithoutRounding.format(parseFloat(USDCbalance.toString()))} USDC</Text>
+                                  <Text size='15px' weight className="" opacity={"0.5"}>Par Units</Text>
+                                  <Text size='12px' className="" opacity={"0.5"}>1 Unit=1000 USDC</Text>
                                 </div>
-                                <div className="">
+                                <div className="col-span-2">
                                   <input
                                   maxLength={20}
                                   onKeyDown={numOnly}
@@ -1189,7 +1086,7 @@ export function TradeView() {
                                   value={lq_amount30}
                                   onChange={onChangePar_value_30}
                                   className="w-full py-2 px-2 h-10 float-right rounded-md bg-gray-400
-                                  focus:outline-none ring-2 ring-green-100 border-transparent placeholder-green-100" placeholder="Enter USDC Amount" />
+                                  focus:outline-none ring-2 ring-green-100 border-transparent placeholder-green-100" placeholder="Enter Amount" />
                                 </div>
 
                               </div>
@@ -1202,30 +1099,15 @@ export function TradeView() {
                                     <Text color={"#000000"} weight='true'>BUY</Text>
                                 </button>
                             </div>
-                            </div>
                         </div>
 
-                        <div className={`flex w-6/12 md:w-full md:mt-5 flex-col bg-gray-300 pb-7 ml-4 rounded-md md:ml-0 neon-bottom-card selected-box-neon ${superBonds_status90 ==='ACTIVE'?'neon-bottom-card selected-box-neon':''} ${cardType === '90'? 'sm:block sm:mt-0':'sm:hidden'}`}>
-
-                          <div className={`flex justify-between rounded-t-md py-3 px-3 ${superBonds_status90 ==='ACTIVE'?'sb-activated':'bg-gray-200'} select-none`}>
-                            <Text className='sm:hidden' weight={'true'} size ={"16px"} transform={"true"} color={superBonds_status90 ==='ACTIVE' ? "#334150":"white"} style={{ fontFamily:"Archivo"}}>90-day pool</Text>
-                            {superBonds_status90 ==='ACTIVE' && <Text weight={'true'} spacing='0.3em' size ={"16px"} transform={"true"} color={"#334150"} style={{ fontFamily:"Bai Jamjuree"}}>superbonds ACTIVATED</Text>}
-                          </div>
-
-                          <div className="grid-cols-2 mt-3 items-center hidden sm:grid">
-                            <div className="col-span-1 text-center cursor-pointer" onClick={()=>setCardType('30')}>
-                              <Text weight={'true'} size ={"16px"} transform={"true"} color={cardType === '30' ? "#7CFA4C":"#435160"} style={{ fontFamily:"Archivo"}}>30-day pool</Text>
-                              <div className="hidden lg:block md:hidden sm:block w-10/12 m-auto" style={{borderBottom: '3px solid '+ ((cardType === '30' )? '#7CFA4C':'#435160'),  marginBottom: '6px'}}></div>
+                        <div className={`flex w-6/12 md:w-full md:mt-3 flex-col bg-gray-300 py-7 px-7 ml-4 rounded-md   md:ml-0 sm:py-3 sm:px-2  ${superBonds_status90 ==='ACTIVE'?'box':'neon-bottom-card selected-box-neon'}`}>
+                            <div className="text-center select-none">
+                                <Text weight={'true'} size ={"16px"} transform={"true"} color={"#7CFA4C"}>90-day pool</Text>
                             </div>
-                            <div className="col-span-1 text-center cursor-pointer" onClick={()=>setCardType('90')}>
-                              <Text weight={'true'} size ={"16px"} transform={"true"} color={cardType === '90' ? "#7CFA4C":"#435160"} style={{ fontFamily:"Archivo"}}>90-day pool</Text>
-                              <div className="hidden lg:block md:hidden sm:block w-10/12 m-auto" style={{borderBottom: '3px solid '+ ((cardType === '90' )? '#7CFA4C':'#435160'),  marginBottom: '6px'}}></div>
-                            </div>
-                          </div>
 
 
-                          <div className='px-7 sm:px-4'>
-                            {/* <div className="grid grid-cols-3 gap-2 mt-3 rounded-md" style={{height:'152px'}}>
+                            <div className="grid grid-cols-3 gap-2 mt-3 rounded-md" style={{height:'152px'}}>
                               <div className="flex flex-col items-center text-center justify-center">
                                 {superBonds_status90 ==='ACTIVE' && <Text size='20px' weight color='#7CFA4C' className="blink-text select-none">SuperBonds Active</Text>}
                                 {superBonds_status90 ==='INACTIVE' && <Text size='20px' className='select-none' weight color='#7CFA4C'>SuperBonds Inactive</Text>}
@@ -1233,12 +1115,12 @@ export function TradeView() {
 
                               <div className="flex flex-col items-center">
                                 {superBonds_status90 ==='ACTIVE' &&
-                                  <div className="flex flex-col text-center bg-no-repeat bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'cover',backgroundImage: `url(${PoligonActive})`}}>
+                                  <div className="flex flex-col text-center bg-no-repeat bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'cover',backgroundImage: `url(${'https://res.cloudinary.com/drr1rnoxf/image/upload/v1639999845/Polygon_9_h2mqxc.png'})`}}>
                                     <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='#7CFA4C'>{(SuperBonds_Rewards_Pool_90_Balance).toFixed(2)} USDC</Text>
                                   </div>
                                 }
                                 {superBonds_status90 ==='INACTIVE' &&
-                                <div className="flex flex-col text-center bg-no-repeat mt-3 bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'cover',backgroundImage: `url(${PoligonInActive})`}}>
+                                <div className="flex flex-col text-center bg-no-repeat mt-3 bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'127px',backgroundSize:'contain', backgroundImage: `url(${'https://res.cloudinary.com/drr1rnoxf/image/upload/v1640187604/Polygon_9_1_qkkbl1.png'})`}}>
                                   <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color={'#7CFA4C'}>{(SuperBonds_Rewards_Pool_90_Balance).toFixed(2)} USDC</Text>
                                 </div>}
                               </div>
@@ -1248,94 +1130,55 @@ export function TradeView() {
                                 <Text className='mt-1' size='19px' weight='600' color='white'>{(SuperBonds_Rewards_Pool_90_Balance).toFixed(2)}</Text>
                                 <Text size='12px' opacity='0.7'>USDC</Text>
                               </div>
-                            </div> */}
-
-                             <div className="grid grid-cols-10 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-5 mt-3 rounded-md items-center">
-
-                              <div className="flex flex-col items-center col-span-3 lg:col-span-2 md:col-span-1 sm:col-span-2">
-                                <div className="flex flex-col text-center bg-no-repeat bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'147px',backgroundImage: `url(${PoligonActive})`}}>
-                                  <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>TOTAL APY</Text>
-                                  <Text className="" size={"14px"} color={"#9CF61C"}><span style={{color: "#9CF61C"}}><strong>{(APY+ bond_yield90)>0?formatNumberWithoutRounding.format(APY+ bond_yield90):'0.00'}%</strong></span></Text>
-                                </div>
-                                {/* {superBonds_status90 === 'ACTIVE' &&
-                                  <div className="flex flex-col text-center bg-no-repeat bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'147px',backgroundImage: `url(${PoligonActive})`}}>
-                                    <Text className="" size={"16px"} color={"#9CF61C"}><span style={{color: "#9CF61C"}}><strong>{formatNumberWithoutRounding.format(APY+ bond_yield90)}</strong></span></Text>
-                                    <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>TOTAL APY</Text>
-                                  </div>
-                                }
-                                {superBonds_status90 ==='INACTIVE' &&
-                                 <div className="flex flex-col text-center bg-no-repeat mt-3 bg-center justify-center" style={{wordWrap:'break-word', width:'100%', height:'147px',backgroundSize:'147px',backgroundImage: `url(${PoligonInActive})`}}>
-                                    <Text className="" size={"16px"} color={"#9CF61C"}><span style={{color: "#7c7c7c"}}><strong>{formatNumberWithoutRounding.format(APY+ bond_yield90)}</strong></span></Text>
-                                    <Text className='w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>TOTAL APY</Text>
-                                 </div>} */}
-                              </div>
-
-                              <div className="w-full p-3 rounded-md col-span-7 lg:col-span-3 md:col-span-3 sm:col-span-3" style={{height:"max-content" ,"background": (superBonds_status90 ==='ACTIVE')? '#263B31':'#161D23'}}>
-                                  <div className="flex justify-evenly lg:flex-col md:flex-row sm:flex-col lg:justify-start md:justify-evenly sm:justify-start">
-                                      <div className="flex flex-col">
-                                          <Text size={"14px"} opacity={"0.75"} spacing={'0px'} weight='bold' >Total Bonds Available</Text>
-                                          <Text size={"19px"} color={(superBonds_status90 ==='ACTIVE')? (bond_yield90>=0 ? "#7CFA4C" : "red"):"#5C7188"}><span ><strong>{bond_yield90 ? formatNumberWithoutRounding.format((adjustedLiquidity90 * tradeLiquidityAvailability90 / (((1 + (bond_yield90/100))**(90/365)) - 1))/0.35):"0.00"}</strong></span></Text>
-                                          <Text size={"9px"} opacity={"0.75"} spacing={'0px'} weight='bold'>USDC</Text>
-                                      </div>
-                                      <div className="lg:hidden md:block sm:hidden" style={{paddingLeft:'6px', borderLeft: '3px solid '+ ((superBonds_status90 ==='ACTIVE' )? '#1A232B':'#5C7188')/* ,height: '-1px' */}}></div>
-                                      <div className="hidden lg:block md:hidden sm:block" style={{borderBottom: '3px solid '+ ((superBonds_status90 ==='ACTIVE' )? '#1A232B':'#5C7188'),  marginBottom: '6px'}}></div>
-                                      <div className="flex flex-col">
-                                          <Text size={"14px"} opacity={"0.75"} spacing={'0px'} weight='bold' >SuperBonds Pool</Text>
-                                          <Text size={"19px"} color={(superBonds_status90 ==='ACTIVE')? (bond_yield90>=0 ? "#7CFA4C" : "red"):"#5C7188"}><span ><strong>{(SuperBonds_Rewards_Pool_90_Balance).toFixed(2)}</strong></span></Text>
-                                          <Text size={"9px"} opacity={"0.75"} spacing={'0px'} weight='bold'>USDC</Text>
-                                      </div>
-                                  </div>
-                              </div>
                             </div>
 
 
-
-                            <div className="bg-gray-200 py-1 p-1  sm:p-1 mt-5 rounded-md">
-                                <div className="w-full p-4 rounded-md bg-gray-400" >
-                                <div className='grid grid-cols-3'>
-                                    <Text weight='true' className="col-span-2" opacity={"0.75"} >Fixed Yield</Text>
-                                    <Text weight='true' size={"19px"} color={"#7CFA4C"}><span style={{color: bond_yield90>=0 ? "#7CFA4C" : "red"}}><strong>{superbondsStatus90 ? Math.floor(bond_yield90*superbondsRate90*100)/100 : bond_yield90}%</strong></span></Text>
-                                  </div>
-
-                                  <div className='grid grid-cols-3'>
-                                    <Text weight='true' className="col-span-2" opacity={"0.75"}>Days to Maturity</Text>
-                                    <Text weight='true' className='' size={"19px"}color={'white'}>90</Text>
-                                  </div>
+                            <div className="bg-gray-200 py-3 p-4  sm:p-1 mt-5 rounded-md">
+                                <div className="w-full p-4 rounded-md" style={{"background":'linear-gradient(0deg, rgba(124, 250, 76, 0.2), rgba(124, 250, 76, 0.2)), #1F2933'}}>
+                                    <table className="w-full">
+                                        <tr>
+                                            <th className="float-left"><Text opacity={"0.75"} >Annualized Yield:</Text></th>
+                                            <td  className="float-right"><Text size={"19px"} color={"#9CF61C"}><span style={{color: bond_yield90>=0 ? "#9CF61C" : "red"}}><strong>{superbondsStatus90 ? Math.floor(bond_yield90*superbondsRate90*100)/100 : bond_yield90}%</strong></span></Text></td>
+                                        </tr>
+                                        <tr>
+                                            <th className="float-left">  <Text opacity={"0.75"}>Days to Maturity:</Text></th>
+                                            <td className="float-right" ><Text className='mr-4' size={"19px"}color={'white'}>90</Text></td>
+                                        </tr>
+                                    </table>
                                 </div>
                                 <div className="w-full p-4 rounded-md">
-                                  <div className='grid grid-cols-3'>
-                                    <Text weight='true' className="col-span-2" opacity={"50%"} >Max Trade</Text>
-                                    <span><Text size='15px'>{bond_yield90 ? formatNumberWithoutRounding.format(adjustedLiquidity90 * tradeLiquidityAvailability90 / (((1 + (bond_yield90/100))**(90/365)) - 1)):"0.00"}</Text><Text className='ml-1' size='12px'>USDC</Text></span>
-                                  </div>
-
-                                    <div className='grid grid-cols-3'>
-                                      <Text weight='true' className="col-span-2" opacity={"50%"}>Bond Value at Entrance</Text>
-                                      <Text className='' size={"19px"}color={'white'}><Text size='15px'>{formatNumberWithoutRounding.format(bondValue_90)}</Text><Text className='ml-1' size='12px'>USDC</Text></Text>
-                                    </div>
-
-                                    <div className='grid grid-cols-3'>
-                                      <Text weight='true' className="col-span-2" opacity={"50%"}>Bond Value at Maturity</Text>
-                                      <Text className='' size={"19px"}color={'white'}><Text size='15px'><Text className='' size={"19px"}color={'white'}><Text size='15px'>{formatNumberWithoutRounding.format(bondValueMaturity_90)}</Text><Text className='ml-1' size='12px'>USDC</Text></Text></Text></Text>
-                                    </div>
-
+                                    <table className="w-full">
+                                        <tr>
+                                            <th className="float-left"><Text opacity={"50%"} >Max Trade:</Text></th>
+                                            <td className="float-right"><Text size='15px'>{bond_yield90 ?formatNumberWithoutRounding.format((adjustedLiquidity90 * tradeLiquidityAvailability90)/findTradeUnit((superbondsStatus90 ? Math.floor(bond_yield90*superbondsRate90*100)/100 : bond_yield90),90)):"0.00"}</Text><Text className='ml-1' size='12px'>UNITS</Text></td>
+                                        </tr>
+                                        <tr>
+                                            <th className="float-left">  <Text opacity={"0.5"}>Bond Value at Entrance:</Text></th>
+                                            <td className="float-right"><Text size='15px'>{formatNumberWithoutRounding.format(bondValue_90)}</Text><Text className='ml-1' size='12px'>USDC</Text></td>
+                                        </tr>
+                                        <tr>
+                                            <th className="float-left"><Text opacity={"0.5"}>Bond Value at Maturity:</Text></th>
+                                            <td className="float-right"><Text size='15px'>{formatNumberWithoutRounding.format(bondValueMaturity_90)}</Text></td>
+                                        </tr>
+                                    </table>
                                 </div>
 
                             </div>
 
                             <div className=" bg-gray-200 py-3 px-3 border rounded-md mt-3 align-middle">
-                              <div className='grid grid-cols-2 '>
+                              <div className='grid grid-cols-3 gap-2'>
                                 <div className="flex flex-col">
-                                  <Text size='15px' weight className="" opacity={"0.5"}>Amount</Text>
-                                  <Text size='12px' className="cursor-pointer" opacity={"0.5"} onClick={()=>handleMaxBalance(90)}>Balance: {formatNumberWithoutRounding.format(parseFloat(USDCbalance.toString()))} <Text className='ml-1' size='12px'>USDC</Text></Text>
+                                  <Text  size='15px' weight className="" opacity={"0.5"}>Par Units</Text>
+                                  <Text size='12px' className="" opacity={"0.5"}>1 Unit=1000 USDC</Text>
                                 </div>
-                                <div className="">
+                                <div className="col-span-2">
                                   <input maxLength={20}
                                     onKeyDown={numOnly}
                                     onKeyPress={noSpecial}
                                     type='tel'
                                     value={lq_amount90}
                                     onChange={onChangePar_value_90} className="w-full py-2 px-2 h-10 float-right rounded-md bg-gray-400
-                                  focus:outline-none ring-2 ring-green-100 border-transparent placeholder-green-100" placeholder="Enter USDC Amount" />
+                                  focus:outline-none ring-2 ring-green-100 border-transparent placeholder-green-100" placeholder="Enter Amount" />
                                 </div>
                               </div>
                             </div>
@@ -1345,7 +1188,6 @@ export function TradeView() {
                                 <button className="rounded-sm mt-4 text-center bg-green-100 py-2 w-full transform transition hover:scale-105" onClick={()=>onTrade(90)}>
                                     <Text color={"#000000"} weight='true'>BUY</Text>
                                 </button>
-                            </div>
                             </div>
                         </div>
                     </div>
@@ -1361,9 +1203,11 @@ export function TradeView() {
                       <Text className={"cursor-pointer ml-2 py-1 " + (showAllTrade == 1? 'border-b-2 border-green-100' : '')} transform size='14px' onClick={()=>onShowAllTrades(1)}>Recent Trades</Text>
                     </div>
                     <div>
-                      <div className="bg-gray-300 items-center align-middle py-2 px-5 rounded-md flex">
+                      <div className="bg-gray-300 items-center align-middle py-2 px-5 rounded-md">
                       <i onClick={()=>handlePagination(10,offset>0?-10:0)}  className="fas fa-chevron-left mr-4 inline-block cursor-pointer text-green-100 transform transition hover:scale-150"></i>
-                      <i onClick={()=>handlePagination(10,10)} className="fas fa-chevron-right inline-block ml-4 cursor-pointer text-green-100  transform transition hover:scale-150"></i>
+                       <i onClick={()=>handlePagination(10,10)} className="fas fa-chevron-right inline-block ml-4 cursor-pointer text-green-100  transform transition hover:scale-150"></i>
+                        {/* <img src={left} alt="prev" className="inline-block mr-4 cursor-pointer" />  */}
+                        {/* <img src={right} alt="next" onClick={()=>handlePagination(10,10)} className="ml-4 inline-block cursor-pointer" /> */}
                       </div>
                     </div>
                   </div>
@@ -1388,7 +1232,7 @@ export function TradeView() {
                       onSettle={onSettle}
                     />
                   }
-
+                     
                 </div>
             </div>
             <GlobalStyle maxWidth='400px' />

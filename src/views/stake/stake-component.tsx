@@ -11,7 +11,7 @@ import { SUPERBONDS_PROGRAM_ID,
          LP_TOKEN_90_MINT_ADDRESS,
          POOL_30_ADDRESS,
          POOL_90_ADDRESS,
-        USDC_DECIMALS,
+        //  USDC_DECIMALS,
          SUPERB_DECIMALS,
          LP_TOKEN_DECIMALS,
          PLATFORM_DATA_ACCOUNT,
@@ -31,14 +31,12 @@ import {TRADER_LAYOUT/* ,TraderLayout */} from "../../utils/trader_layout";
 import {FARMING_REWARD_LAYOUT} from "../../utils/farming_reward_layout";
 import {ButtonText,Text} from "./stake.styled";
 import BN from "bn.js";
-import axios from 'axios';
-import {AxiosResponse} from 'axios';
-import {
+import { 
   Numberu64,numberFormatter,
   /* ,truncateStr,convertTimeStamp, */
   getTokenBalance,delay,
   formatInputNumber, unformatInputNumber,
-  numOnly, noSpecial,formatNumberWithoutRounding
+  numOnly, noSpecial
  } from "../../utils/utils";
 import {
   Account,
@@ -51,7 +49,7 @@ import {
   TransactionInstruction,
   // Transaction,
 } from '@solana/web3.js';
-import {
+import {  
           // AccountLayout,
           // Token,
           TOKEN_PROGRAM_ID,
@@ -59,7 +57,7 @@ import {
  } from "@solana/spl-token";
 // import {decode} from "base58-universal";
 import Swal from 'sweetalert2';
-// import classes from './stake.module.css';
+import classes from './stake.module.css';
 import { GlobalStyle } from "../redeem/redeem.styled";
 
 let sunny_reward_accounts:any = [];
@@ -69,14 +67,11 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
 
   const connection = useConnection();
   const wallet = useWallet();
-  const [data30pool,setData30pool] = useState<any>();
-  const [data90pool,setData90pool] = useState<any>();
-  const [transactionFees,setTransactionFees] = useState<any>();
   const [lq_amount30,setLQ_Amount30] = useState("");
   const [lq_amount90,setLQ_Amount90] = useState("");
   // const [sb_amount,setSB_Amount] = useState("");
   // const [sol_sb_lp_amount,setSOL_SB_LP_Amount] = useState("");
-  console.log("data30pool",data30pool)
+
   const onChangeLQ_amount30 = useCallback( (e) => {
     const { value } = e.target;
     setLQ_Amount30(formatInputNumber(value));
@@ -91,8 +86,6 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
   const [SuperBbalance,setSuperBbalance] = useState<any>(0);
   const [LP30balance,setLP30balance] = useState<any>(0);
   const [LP90balance,setLP90balance] = useState<any>(0);
-  const [APY30LP,setAPY30LP] = useState<any>();
-  const [APY90LP,setAPY90LP] = useState<any>();
   // const [SOL_SB_LPbalance,setSOL_SB_LPbalance] = useState<any>(0);
 
   const [traderData,setTraderData] = useState<any>(null);
@@ -122,10 +115,8 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
     setSuperBbalance(await getTokenBalance(connection,wallet.publicKey,SUPERB_MINT_ADDRESS,SUPERB_DECIMALS));
     // setSOL_SB_LPbalance(await getTokenBalance(connection,wallet.publicKey,SOL_SB_LP_MINT_ADDRESS,SOL_SB_LP_TOKEN_DECIMALS));
   }
-
+  
   useEffect(() => {
-    readPoolData_30();
-    readPoolData_90();
     if (!wallet.publicKey) return;
     onRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,17 +134,6 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [traderData,PlatformData]);
 
-  const fetchAPY= async ()=>{
-    const APY30LP:AxiosResponse<any> = await axios.get('https://api.superbonds.finance/LP_30_Staking_APY');
-    setAPY30LP(APY30LP.data.APY)
-
-    const APY90LP:AxiosResponse<any> = await axios.get('https://api.superbonds.finance/LP_90_Staking_APY');
-    setAPY90LP(APY90LP.data.APY)
-   }
-   
-   useEffect(()=>{
-    fetchAPY()
-   },[])
   const getTraderDataAccount = async () => {
     if ( !wallet){
       notify({
@@ -210,6 +190,7 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
     }
     const encodedPoolDataState = (await connection.getAccountInfo(PLATFORM_DATA_ACCOUNT, 'singleGossip'))!.data;
     const decodedPoolDataState = PLATFORM_DATA_LAYOUT.decode(encodedPoolDataState) as PlatformDataLayout;
+    console.log(decodedPoolDataState);
     setPlatformData(decodedPoolDataState);
 
     // const encodedStakingDataState = (await connection.getAccountInfo(STAKING_DATA_ACCOUNT, 'singleGossip'))!.data;
@@ -221,23 +202,6 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
     // const decodeSuperB_Rewards_Account_ADDRESS = AccountLayout.decode(encodeSuperB_Rewards_Account_ADDRESS);
     // let SuperB_Rewards_Balance = new BN(decodeSuperB_Rewards_Account_ADDRESS.amount, 10, "le").toNumber() / (10**SUPERB_DECIMALS);
     // setSuperB_Rewards_Balance(SuperB_Rewards_Balance);
-  }
-
-  const readPoolData_30 = async () => {
-    const encodedPoolDataState = (await connection.getAccountInfo(POOL_30_ADDRESS, 'singleGossip'))!.data;
-    const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-    setData30pool(decodedPoolDataState);
-    let transactionFeeSuperB = new BN(decodedPoolDataState.transaction_fee_SuperB, 10, "le").toNumber() / (10**USDC_DECIMALS);
-    setTransactionFees(transactionFeeSuperB)
-  }
-
-  const readPoolData_90 = async () => {
-    const encodedPoolDataState = (await connection.getAccountInfo(POOL_90_ADDRESS, 'singleGossip'))!.data;
-    const decodedPoolDataState = POOL_DATA_LAYOUT.decode(encodedPoolDataState) as PoolDataLayout;
-    setData90pool(decodedPoolDataState);
-    let transactionFeeSuperB = new BN(decodedPoolDataState.transaction_fee_SuperB, 10, "le").toNumber() / (10**USDC_DECIMALS);
-    setTransactionFees(transactionFeeSuperB)
-    
   }
 
   const [sunny_unclaimed_rewards,setSunny_Unclaimed_Rewards] = useState(0);
@@ -325,51 +289,6 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
   }
 
   const onStake = async (pool:number,isClaim=false) => {
-  let StakingFees=pool===30?data30pool.stake_LP_fee/100:data90pool.stake_LP_fee/100;
-
-   const message = `
-    <div class="bg-gray-200 py-3 p-4 mt-3 sm:p-1 rounded-md">
-      <div class="table2">
-        <table class="w-full"> 
-            <tr>
-              <th class="text-left">
-                <span class="th_span small_font_td_span">
-                  LP Staking Fees: </span>
-              </th>
-              <td class="text-right">
-                <span class="td_span small_font_td_span">
-                <b>${StakingFees}</b>%</span>
-              </td>
-            </tr>
-
-            <tr>
-              <th class="text-left">
-                <span class="th_span small_font_td_span">
-                  Platform Fees: </span>
-              </th>
-              <td class="text-right">
-                <span class="td_span small_font_td_span">
-                <b>${transactionFees}</b> SB</span>
-              </td>
-            </tr>
-        </table>
-      </div>
-    </div>
-    `
-    let ProceedForStake=false
-    await Swal.fire({
-      title: 'Fees Confirmation',
-      html:message,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      confirmButtonColor:'#7cfa4d'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        ProceedForStake = true
-      }
-    })
-    if (!ProceedForStake) return;
-
     if ( !wallet){
       notify({
         message: 'Please connect to Sol network',
@@ -592,51 +511,6 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
 
   }
   const onUnstake = async (pool:number) => {
-    let UnstakingFees=pool===30?data30pool.unstake_LP_fee/100:data90pool.unstake_LP_fee/100;
-
-    const message = `
-     <div class="bg-gray-200 py-3 p-4 mt-3 sm:p-1 rounded-md">
-       <div class="table2">
-         <table class="w-full"> 
-             <tr>
-               <th class="text-left">
-                 <span class="th_span small_font_td_span">
-                   LP Unstaking Fees: </span>
-               </th>
-               <td class="text-right">
-                 <span class="td_span small_font_td_span">
-                 <b>${UnstakingFees}</b>%</span>
-               </td>
-             </tr>
- 
-             <tr>
-               <th class="text-left">
-                 <span class="th_span small_font_td_span">
-                   Platform Fees: </span>
-               </th>
-               <td class="text-right">
-                 <span class="td_span small_font_td_span">
-                 <b>${transactionFees}</b> SB</span>
-               </td>
-             </tr>
-         </table>
-       </div>
-     </div>
-     `
-    let ProceedForUnstake=false
-    await Swal.fire({
-      title: 'Unstake Fees Confirmation',
-      html:message,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      confirmButtonColor:'#7cfa4d'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        ProceedForUnstake = true
-      }
-    })
-    if (!ProceedForUnstake) return;
-
     if ( !wallet){
       notify({
         message: 'Please connect to Sol network',
@@ -790,52 +664,40 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
 
 
   }
-
+   
   const onRefresh = async () =>{
     await getTraderDataAccount();
     await getPlatformData();
     await getAllBalances();
   }
-
-
+  
   if (poolType === '30')
     return (<div
-      className="flex  flex-col w-6/12 2xl:w-49/100 xl:w-11/12 md:w-8/12 sm:w-12/12  py-4 px-7 md:my-4 md:ml-0  sm:py-0 sm:px-0">
-      {/* <i className={"fas fa-exchange-alt fa-lg mr-1 " + classes.exchange_icon} aria-hidden="true" /> */}
+      className="flex neon-bottom-card selected-box-neon border-left-none flex-col w-5/12 2xl:w-49/100 xl:w-11/12 md:w-8/12 sm:w-11/12 ml-4 bg-gray-300 py-5 px-7 rounded-md md:my-4 md:ml-0 mt-2 max-h-80">
+      <i className={"fas fa-exchange-alt fa-lg mr-1 " + classes.exchange_icon} aria-hidden="true" />
       <div className="text-center">
-        <Text size={"16px"} transform={"true"}>LP STAKING</Text>
+        <Text size={"16px"} transform={"true"}>30-DAY POOL LP STAKING</Text>
       </div>
-
-      <div className="bg-gray-200 p-1 rounded-md mt-5">
-        <div className=" flex flex-col w-full py-1 px-3 rounded-md col-span-3 lg:col-span-3 md:col-span-3 sm:col-span-3" style={{height:"max-content" ,"background":'#161D23'}}>
-          <div className="flex justify-evenly">
-              <div className="flex flex-col">
-                  <Text className='select-none' size={"14px"} color={"#7c7c7c"} weight='bold' >Balance</Text>
-                  <Text className='select-none cursor-pointer' size={"19px"} onClick={()=>setLQ_Amount30(formatInputNumber(String(LP30balance)))}>{numberFormatter.format(LP30balance)}</Text>
-              </div>
-              <div style={{borderLeft: '3px solid #7c7c7c'}}></div>
-              {/* <div className="hidden lg:block md:hidden sm:block" style={{borderBottom: '3px solid #7c7c7c' ,  marginBottom: '6px'}}></div> */}
-              <div className="flex flex-col">
-                <Text className='select-none' size={"14px"} color={"#7c7c7c"} weight='bold' >Staked:</Text>
-                <Text className='select-none cursor-pointer' size={"19px"} onClick={()=>setLQ_Amount30(formatInputNumber(String(traderData.total_LP_Token_staked_vector[0]/1000000)))}>{traderData ? numberFormatter.format(traderData.total_LP_Token_staked_vector[0]/1000000): '0.00'}</Text>
-                {/* <Text className='select-none' size={"12px"} color={"#7c7c7c"}>Fees: $5.00</Text> */}
-              </div>
-          </div>
-          <div className="flex flex-col text-center bg-gray-900 rounded-md  mt-5 my-3 py-3 my-1" style={{background:'linear-gradient(0deg, rgba(124, 250, 76, 0.2), rgba(124, 250, 76, 0.2)), #1F2933'}}>
-            <Text className='select-none w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>APY</Text>
-            <Text className="select-none" size={"19px"} color={"#9CF61C"}><span style={{color: "#9CF61C"}}><strong>{(APY30LP)>0?formatNumberWithoutRounding.format(APY30LP):"0.00"}%</strong></span></Text>
-          </div>
-        </div>
-
-        <div className="text-center bg-gray-200 pt-3 pb-2 px-3 border rounded-md ">
-          <Text className="block" opacity={"0.5"} weight='bold'>Enter 30 Day LP Token</Text>
-          <input maxLength={20}
-            onKeyDown={numOnly}
-            onKeyPress={noSpecial}
-            onChange={onChangeLQ_amount30} value={lq_amount30}
-            className="w-full py-2 px-2 h-10 mt-3 rounded-md bg-gray-400 focus:outline-none ring-2 ring-green-100 focus:ring-green-100 focus:border-transparent placeholder-green-100"
-            placeholder="Token Amount" />
-        </div>
+      <div className="bg-gray-200 py-3 pl-3 pr-3  mt-2 rounded-md">
+        <table className="w-full">
+          <tr>
+            <th className="float-left"><Text opacity={"50%"}>Balance:</Text></th>
+            <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount30(formatInputNumber(String(LP30balance)))}> {numberFormatter.format(LP30balance)}</Text></td>
+          </tr>
+          <tr>
+            <th className="float-left"><Text opacity={"50%"}>Staked:</Text></th>
+            <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount30(formatInputNumber(String(traderData.total_LP_Token_staked_vector[0]/1000000)))}>{traderData ? numberFormatter.format(traderData.total_LP_Token_staked_vector[0]/1000000): '0.00'}</Text></td>
+          </tr>
+        </table>
+      </div>
+      <div className="text-center bg-gray-200 py-3 px-3 border rounded-md mt-3">
+        <Text className="block" opacity={"0.5"}>Enter 30 Day LP Token</Text>
+        <input maxLength={20}
+          onKeyDown={numOnly}
+          onKeyPress={noSpecial}
+          onChange={onChangeLQ_amount30} value={lq_amount30}
+          className="w-full py-2 px-2 h-10 mt-3 rounded-md bg-gray-400 focus:outline-none ring-2 ring-green-100 focus:ring-green-100 focus:border-transparent placeholder-green-100"
+          placeholder="Token Amount" />
       </div>
       {/* <Text opacity={"50%"}>Fees:0.5%+500SB</Text> */}
       <div className="grid grid-cols-2 gap-2 mt-3">
@@ -846,54 +708,42 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
           </button>
         </div>
         <div>
-          <button onClick={() => onUnstake(30)} className="border-2 hover:bg-white hover:text-black  rounded-md w-full border-white px-6 py-1.5 inline-block">
+          <button onClick={() => onUnstake(30)} className="border-2 hover:bg-green-100 hover:text-black  rounded-md w-full border-green-100 px-6 py-1.5
+        inline-block">
             <ButtonText transform weight>Unstake</ButtonText>
           </button>
         </div>
       </div>
-      <GlobalStyle />
     </div>)
 
   if (poolType === '90')
     return (
       <div
-        className="flex  flex-col w-6/12 2xl:w-49/100 xl:w-11/12 md:w-8/12 sm:w-12/12 py-4 px-7 md:my-4 md:ml-0  sm:py-0 sm:px-0">
-        {/* <i className={"fas fa-exchange-alt fa-lg mr-1 " + classes.exchange_icon} aria-hidden="true" /> */}
+        className="flex neon-bottom-card selected-box-neon border-left-none flex-col w-5/12 2xl:w-49/100 xl:w-11/12 md:w-8/12 sm:w-11/12 ml-4 bg-gray-300 py-5 px-7 rounded-md md:my-4 md:ml-0 mt-2 max-h-80">
+        <i className={"fas fa-exchange-alt fa-lg mr-1 " + classes.exchange_icon} aria-hidden="true" />
         <div className="text-center">
-          <Text size={"16px"} transform={"true"}>LP STAKING</Text>
+          <Text size={"16px"} transform={"true"}>90-DAY POOL LP STAKING</Text>
         </div>
-
-
-      <div className="bg-gray-200 p-1 rounded-md mt-5">
-      <div className=" flex flex-col w-full py-1 px-3 rounded-md col-span-3 lg:col-span-3 md:col-span-3 sm:col-span-3" style={{height:"max-content" ,"background":'#161D23'}}>
-          <div className="flex justify-evenly">
-              <div className="flex flex-col">
-                  <Text className='select-none' size={"14px"} color={"#7c7c7c"} weight='bold' >Balance</Text>
-                  <Text className='select-none cursor-pointer' size={"19px"}  onClick={()=>setLQ_Amount90(formatInputNumber(String(LP90balance)))}>{numberFormatter.format(LP90balance)}</Text>
-              </div>
-              <div style={{borderLeft: '3px solid #7c7c7c'}}></div>
-              {/* <div className="hidden lg:block md:hidden sm:block" style={{borderBottom: '3px solid #7c7c7c' ,  marginBottom: '6px'}}></div> */}
-              <div className="flex flex-col">
-                <Text className='select-none' size={"14px"} color={"#7c7c7c"} weight='bold' >Staked:</Text>
-                <Text className='select-none cursor-pointer' size={"19px"} onClick={()=>setLQ_Amount90(formatInputNumber(String(traderData.total_LP_Token_staked_vector[1]/1000000)))}>{traderData ? numberFormatter.format(traderData.total_LP_Token_staked_vector[1]/1000000): '0.00'}</Text>
-                {/* <Text className='select-none' size={"12px"} color={"#7c7c7c"}>Fees: $5.00</Text> */}
-              </div>
-          </div>
-          <div className="flex flex-col text-center bg-gray-900 rounded-md py-3 mt-5 my-3" style={{background:'linear-gradient(0deg, rgba(124, 250, 76, 0.2), rgba(124, 250, 76, 0.2)), #1F2933'}}>
-            <Text className='select-none w-9/12 mx-auto px-2' size='12px' weight='600' color='white'>APY</Text>
-            <Text className="select-none" size={"19px"} color={"#9CF61C"}><span style={{color: "#9CF61C"}}><strong>{(APY90LP)>0?formatNumberWithoutRounding.format(APY90LP):"0.00"}%</strong></span></Text>
-          </div>
+        <div className="bg-gray-200 py-3 pl-3 pr-3  mt-2 rounded-md">
+          <table className="w-full">
+            <tr>
+              <th className="float-left"><Text opacity={"50%"}>Balance:</Text></th>
+              <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount90(formatInputNumber(String(LP90balance)))}>{numberFormatter.format(LP90balance)}</Text></td>
+            </tr>
+            <tr>
+            <th className="float-left"><Text opacity={"50%"}>Staked:</Text></th>
+            <td className="text-right px-2"><Text className='cursor-pointer' onClick={()=>setLQ_Amount90(formatInputNumber(String(traderData.total_LP_Token_staked_vector[1]/1000000)))}>{traderData ? numberFormatter.format(traderData.total_LP_Token_staked_vector[1]/1000000): '0.00'}</Text></td>
+          </tr>
+          </table>
         </div>
-
-          <div className="text-center bg-gray-200 pt-3 pb-2 px-3 border rounded-md">
-            <Text className="block" opacity={"0.5"} weight='bold'>Enter 90 Day LP Token</Text>
-            <input maxLength={20}
-              onKeyDown={numOnly}
-              onKeyPress={noSpecial} value={lq_amount90}
-              onChange={onChangeLQ_amount90}
-              className="w-full py-2 px-2 h-10 mt-3 rounded-md bg-gray-400 focus:outline-none ring-2 ring-green-100 focus:ring-green-100 focus:border-transparent placeholder-green-100"
-              placeholder="Token Amount" />
-          </div>
+        <div className="text-center bg-gray-200 py-3 px-3 border rounded-md mt-3">
+          <Text className="block" opacity={"0.5"}>Enter 90 Day LP Token</Text>
+          <input maxLength={20}
+            onKeyDown={numOnly}
+            onKeyPress={noSpecial} value={lq_amount90}
+            onChange={onChangeLQ_amount90}
+            className="w-full py-2 px-2 h-10 mt-3 rounded-md bg-gray-400 focus:outline-none ring-2 ring-green-100 focus:ring-green-100 focus:border-transparent placeholder-green-100"
+            placeholder="Token Amount" />
         </div>
         {/* <Text opacity={"50%"}>Fees:0.5%+500SB</Text> */}
         <div className="grid grid-cols-2 gap-2 mt-3">
@@ -904,7 +754,8 @@ export const StakeViewComponent: React.FC<{ poolType: string ,getAllLiquidityBal
             </button>
           </div>
           <div>
-            <button onClick={() => onUnstake(90)} className="border-2 hover:bg-white hover:text-black  rounded-md w-full border-white px-6 py-1.5 inline-block">
+            <button onClick={() => onUnstake(90)} className="border-2 hover:bg-green-100 hover:text-black  rounded-md w-full border-green-100 px-6 py-1.5
+        inline-block">
               <ButtonText transform weight>Unstake</ButtonText>
             </button>
           </div>
