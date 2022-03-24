@@ -5,6 +5,7 @@ import { useMarkets } from "../../contexts/market";
 import { Text, TextDoc, BtnText, NewText, BoldFont } from "./home.styled";
 // import { Tooltip } from 'antd';
 import bgimage from "../../assets/bg.png";
+import ReactGA from './google-analytics';
 import "./home.css";
 
 export const HomeView = () => {
@@ -14,6 +15,8 @@ export const HomeView = () => {
   // const history = useHistory();
 
   useEffect(() => {
+    ReactGA.pageview(window.location.hash);
+    ReactGA.set({page: window.location.hash});
     const refreshTotal = () => {};
 
     const dispose = marketEmitter.onMarket(() => {
