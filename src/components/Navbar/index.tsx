@@ -119,29 +119,38 @@ export default function Navbar(props: {
       </div>
       ):(
           <>
+
             <button
               className={
-                path == "/trade" ? "bg-gray-300  text-white rounded-md" : ""
+                path == "/governance" ? "bg-gray-300  text-white rounded-md" : ""
               }
-              onClick={() => handlePush("/trade")}
+              onClick={() => handlePush("/governance")}
             >
-              <span className="text-sm tracking-wide">Trade</span>
+              <span className="text-sm tracking-wide">Governance</span>
             </button>
             <button
               className={
-                path == "/liquidity" ? "bg-gray-300  text-white rounded-md" : ""
+                path == "/pool-management" ? "bg-gray-300  text-white rounded-md" : ""
               }
-              onClick={() => handlePush("/liquidity")}
+              onClick={() => handlePush("/pool-management")}
             >
-              <span className="text-sm tracking-wide">Liquidity</span>
+              <span className="text-sm tracking-wide">Pool/Yield Management</span>
             </button>
             <button
               className={
-                path == "/stake" ? "bg-gray-300  text-white rounded-md" : ""
+                path == "/platform-settings" ? "bg-gray-300  text-white rounded-md" : ""
               }
-              onClick={() => handlePush("/stake")}
+              onClick={() => handlePush("/platform-settings")}
             >
-              <span className="text-sm tracking-wide">SB-Staking</span>
+              <span className="text-sm tracking-wide">Platform Settings</span>
+            </button>
+            <button
+              className={
+                path == "/farming_rewards" ? "bg-gray-300  text-white rounded-md" : ""
+              }
+              onClick={() => handlePush("/farming_rewards")}
+            >
+              <span className="text-sm tracking-wide">Farming Rewards</span>
             </button>
             {/* <button className={path=="/tge"?"bg-gray-300  text-white rounded-md":''} onClick={()=>handlePush('/tge')}><span className="text-sm tracking-wide">TGE</span></button>
           <button className={path=="/claimNFT"?"bg-gray-300  text-white rounded-md":''} onClick={()=>handlePush('/claimNFT')}><span className="text-sm tracking-wide">Claim NFT</span></button> */}
