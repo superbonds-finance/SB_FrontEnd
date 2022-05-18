@@ -42,7 +42,7 @@ export const PoolManagementView = () => {
   const [data30pool,setData30pool] = useState<any>();
   const [data90pool,setData90pool] = useState<any>();
   const [bond_yield,setBond_Yield] = useState(0);
-
+  const [amount_to_withdraw,setAmountToWithdraw] = useState(0);
   const [lp_30_supply,setLP_30_Supply] = useState(0);
   const [lp_90_supply,setLP_90_Supply] = useState(0);
 
@@ -68,7 +68,13 @@ export const PoolManagementView = () => {
       setBond_Yield(value);
     }
   },[]);
-
+  const onChangeAmountToWithdraw = useCallback( (e) => {
+    const { value } = e.target;
+    const reg = /^-?\d*(\.\d*)?$/;
+    if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+      setAmountToWithdraw(value);
+    }
+  },[]);
   useEffect(() => {
     if (!wallet.publicKey) return;
     onRefresh();
@@ -758,6 +764,14 @@ export const PoolManagementView = () => {
   }
 
   const withdrawFund = async (_type: number, amount: number) =>{
+    console.log(_type,amount);
+    if (amount == 0){
+      notify({
+        message: 'Amount to withdraw must greater than 0',
+        type: "error",
+      });
+      return;
+    }
     if (!wallet){
       notify({
         message: 'Please connect to Solana network',
@@ -805,6 +819,13 @@ export const PoolManagementView = () => {
         token_account = decodedStakingDataState.SuperB_Pool;
         decimals = SUPERB_DECIMALS;
         associated_token_account = await findAssociatedTokenAddress(publicKey,SUPERB_MINT_ADDRESS);
+    }
+    else if (_type == 4){
+        msg = 'Withdrawing ' + amount + ' USDC from Reward Account';
+        console.log(decodedStakingDataState.reserved_token_accounts[3]);
+        token_account = decodedStakingDataState.reserved_token_accounts[3];
+        decimals = USDC_DECIMALS;
+        associated_token_account = await findAssociatedTokenAddress(publicKey,USDC_MINT_ADDRESS);
     }
     if (!token_account || !associated_token_account){
       notify({
@@ -971,15 +992,22 @@ export const PoolManagementView = () => {
           <p>SuperB Treasury last Update: <br/><span><strong>{stakingPool ? convertTimeStamp(1000 * new BN(stakingPool.last_update_treasury, 10, "le").toNumber()) : null}</strong></span></p>
           <p>SuperB Pool Balance (fee collected): <br/><span><strong>{SuperB_Pool_Balance} SB</strong></span></p>
           <br/>
+          <p>Enter Amount to withdraw:</p>
+          <Input
+          onChange={onChangeAmountToWithdraw}
+          type="number" />
           <p>Note: Withdraw to Governance Associated Token Account, if Governance is Contract address, the code needs to be changed.</p>
-          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(1,10)}>
+          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(1,amount_to_withdraw)}>
             Withdraw USDC Treasury
           </Button>
-          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(2,100)}>
+          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(2,amount_to_withdraw)}>
             Withdraw SuperB Treasury
           </Button>
-          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(3,100)}>
+          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(3,amount_to_withdraw)}>
             Withdraw SuperB Fee
+          </Button>
+          <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => withdrawFund(4,amount_to_withdraw)}>
+            Withdraw USDC Reward
           </Button>
           <br/><br/><br/>
           <Button type="primary" htmlType="submit" style={{marginRight:"10px"}} onClick={() => setSuperBonds(30,1)}>
