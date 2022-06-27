@@ -32,7 +32,7 @@ export const getTokenBalance = async (connection:any,publicKey:PublicKey,mintAcc
     let balance = 0;
     for (var i=0;i<length;i++){
       let token_account_info = AccountLayout.decode(accounts[i].account.data);
-      balance += new BN(token_account_info.amount, 10, "le").toNumber()/10**decimals;
+      balance += new BN(token_account_info.amount, 10, "le").div(new BN(10**(decimals/2))).toNumber()/10**(decimals/2);
     }
     return balance;
   }
