@@ -1,12 +1,12 @@
 {
-  "name": "superbonds-finance-client-ui",
+  "name": "superstable-finance-client-ui",
   "version": "1.9.8",
   "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/superbonds.finance"
   },
-  "homepage": "https://mainnet.superbonds.finance/",
+  "homepage": "https://superstable.finance/",
   "scripts": {
     "start": "craco start",
     "build": "craco build",
