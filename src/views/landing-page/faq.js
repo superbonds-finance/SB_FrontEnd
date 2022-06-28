@@ -126,7 +126,7 @@ export const FAQ = ({ type }) => {
           }
         >
           <p className="mt-6">
-          $SB token’s utility is as a gas, but other staking options will become available. It will always be the fuel for the SuerStable platform
+          $SB token’s utility is as a gas, but other staking options will become available. It will always be the fuel for the SuperStable platform
           </p>
         </Collapsible>
         <Collapsible
@@ -144,7 +144,7 @@ export const FAQ = ({ type }) => {
           <button
             className="my-6 py-2 px-3"
             onClick={() =>
-              window.open("https://superbonds.gitbook.io/superbonds/")
+              window.open("https://superstable.gitbook.io/superbonds/")
             }
           >
             Click Here
